@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand palette — deep espresso ground, brass accent, parchment text. */
+  --color-espresso: #171410;
+  --color-espresso-raised: #201c17;
+  --color-brass: #b8905a;
+  --color-parchment: #f3ecdf;
+  --color-muted: #a89a82;
+  --color-sage: #7c8f6b;
+  --color-rust: #a85d4d;
+
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-espresso);
+    color: var(--color-parchment);
+    font-family: var(--font-sans);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Form controls inherit the dark ground rather than the OS default. */
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  select option {
+    background-color: var(--color-espresso-raised);
+    color: var(--color-parchment);
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--color-brass) 40%, transparent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brass);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Small letter-spaced caps — labels, buttons, eyebrow text. */
+  .u-caps {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 0.6875rem;
+    line-height: 1;
+  }
+
+  .u-field {
+    width: 100%;
+    border-radius: 0.125rem;
+    border: 1px solid color-mix(in srgb, var(--color-brass) 25%, transparent);
+    background-color: var(--color-espresso-raised);
+    padding: 0.75rem 0.875rem;
+    font-size: 1rem; /* 16px keeps iOS Safari from zooming on focus. */
+    color: var(--color-parchment);
+    transition: border-color 150ms ease;
+  }
+
+  .u-field::placeholder {
+    color: color-mix(in srgb, var(--color-muted) 70%, transparent);
+  }
+
+  .u-field:hover {
+    border-color: color-mix(in srgb, var(--color-brass) 45%, transparent);
+  }
+
+  /* Primary action: solid brass on espresso. */
+  .u-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem; /* comfortable thumb target */
+    border-radius: 0.125rem;
+    background-color: var(--color-brass);
+    padding: 0.75rem 1.25rem;
+    color: var(--color-espresso);
+    font-weight: 500;
+    transition: background-color 150ms ease;
+  }
+
+  .u-btn:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--color-brass) 85%, white);
+  }
+
+  .u-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Secondary action: outlined, same footprint. */
+  .u-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    border-radius: 0.125rem;
+    border: 1px solid color-mix(in srgb, var(--color-brass) 35%, transparent);
+    padding: 0.75rem 1.25rem;
+    color: var(--color-parchment);
+    transition:
+      border-color 150ms ease,
+      background-color 150ms ease;
+  }
+
+  .u-btn-ghost:hover:not(:disabled) {
+    border-color: var(--color-brass);
+    background-color: color-mix(in srgb, var(--color-brass) 8%, transparent);
+  }
+
+  .u-btn-ghost:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
