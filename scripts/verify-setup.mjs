@@ -91,19 +91,16 @@ if (failed) {
   process.exit(1);
 }
 
-// --- 2. Reachability --------------------------------------------------------
+// --- 2. Reachability and table ----------------------------------------------
+//
+// Both are judged from one real table query. Supabase's /rest/v1/ root returns
+// 401 even for a perfectly good anon key, so pinging it proves nothing.
 
 const headers = { apikey: key, Authorization: `Bearer ${key}` };
 
+let tableRes;
 try {
-  const res = await fetch(`${url}/rest/v1/`, { headers });
-  if (res.ok || res.status === 404) {
-    pass("Project is reachable");
-  } else if (res.status === 401) {
-    fail("Project is reachable", "The anon key was rejected. Re-copy it from Project Settings → API.");
-  } else {
-    fail("Project is reachable", `Server replied ${res.status}.`);
-  }
+  tableRes = await fetch(`${url}/rest/v1/products?select=id&limit=1`, { headers });
 } catch (err) {
   fail(
     "Project is reachable",
@@ -113,9 +110,18 @@ try {
   process.exit(1);
 }
 
-// --- 3. Table ---------------------------------------------------------------
+if (tableRes.status === 401) {
+  fail(
+    "Project is reachable",
+    "The anon key was rejected. Re-copy it from Project Settings → API.",
+  );
+  console.log("");
+  process.exit(1);
+}
 
-const tableRes = await fetch(`${url}/rest/v1/products?select=id&limit=1`, { headers });
+pass("Project is reachable");
+
+// --- 3. Table ---------------------------------------------------------------
 
 if (tableRes.status === 404) {
   fail(
