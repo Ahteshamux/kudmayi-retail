@@ -9,15 +9,22 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   const supabase = await createClient();
 
-  // One round trip; counting in JS beats four count queries at this size.
-  const { data, error } = await supabase.from("products").select("category");
+  // Four head-only count queries in parallel. The payload stays constant no
+  // matter how big the catalog gets — pulling every row back just to count
+  // them would grow the home screen's load time with the collection.
+  const results = await Promise.all(
+    CATEGORIES.map(async (category) => {
+      const { count, error } = await supabase
+        .from("products")
+        .select("id", { count: "exact", head: true })
+        .eq("category", category.slug);
+      return { slug: category.slug, count: count ?? 0, error };
+    }),
+  );
 
-  const counts = new Map<string, number>();
-  for (const row of data ?? []) {
-    counts.set(row.category, (counts.get(row.category) ?? 0) + 1);
-  }
-
-  const total = data?.length ?? 0;
+  const counts = new Map(results.map((r) => [r.slug, r.count]));
+  const error = results.find((r) => r.error)?.error ?? null;
+  const total = results.reduce((sum, r) => sum + r.count, 0);
 
   return (
     <>
