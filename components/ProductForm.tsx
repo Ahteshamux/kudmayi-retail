@@ -114,9 +114,9 @@ export function ProductForm({
         </select>
       </div>
 
-      <label className="border-brass/20 bg-espresso-raised flex cursor-pointer items-center justify-between gap-4 border p-4">
+      <label className="border-line bg-surface flex cursor-pointer items-center justify-between gap-4 border p-4">
         <span>
-          <span className="u-caps text-parchment block">Available</span>
+          <span className="u-caps text-espresso block">Available</span>
           <span className="text-muted mt-1.5 block text-sm">
             Turn off for pieces that are out on rent or being altered.
           </span>

@@ -31,7 +31,7 @@ export default async function CategoryPage({
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-10 sm:px-8 sm:py-14">
         <Link
           href="/"
-          className="u-caps text-muted hover:text-brass mb-8 inline-block transition-colors"
+          className="u-caps text-muted hover:text-brass-deep mb-8 inline-block transition-colors"
         >
           &larr; All collections
         </Link>
@@ -58,13 +58,13 @@ export default async function CategoryPage({
         )}
 
         {!error && products.length === 0 ? (
-          <div className="border-brass/15 border border-dashed p-14 text-center">
+          <div className="border-line border border-dashed p-14 text-center">
             <p className="text-muted">
               Nothing in {categoryLabel(slug)} yet.
             </p>
             <Link
               href={`/product/new?category=${slug}`}
-              className="u-caps text-brass mt-4 inline-block hover:underline"
+              className="u-caps text-brass-deep mt-4 inline-block hover:underline"
             >
               Add the first one
             </Link>

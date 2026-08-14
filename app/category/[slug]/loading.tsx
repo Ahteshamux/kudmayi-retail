@@ -10,13 +10,13 @@ export default function CategoryLoading() {
 
         <div className="mb-10">
           <Skeleton className="h-3 w-20" />
-          <div className="bg-brass/30 mt-2.5 h-px w-full max-w-[10rem]" />
+          <div className="bg-brass/60 mt-2.5 h-px w-full max-w-[10rem]" />
           <Skeleton className="mt-4 h-11 w-52" />
         </div>
 
         <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="border-brass/15 border">
+            <div key={i} className="border-line border">
               <Skeleton className="aspect-[3/4] w-full rounded-none" />
               <div className="space-y-2.5 p-3">
                 <Skeleton className="h-4 w-4/5" />

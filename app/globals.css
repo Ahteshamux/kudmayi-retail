@@ -1,14 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  /* Brand palette — deep espresso ground, brass accent, parchment text. */
-  --color-espresso: #171410;
-  --color-espresso-raised: #201c17;
-  --color-brass: #b8905a;
-  --color-parchment: #f3ecdf;
-  --color-muted: #a89a82;
-  --color-sage: #7c8f6b;
-  --color-rust: #a85d4d;
+  /*
+   * Brand palette — parchment ground, espresso ink, brass accent.
+   *
+   * Brass, sage and rust are darkened from their brand values here: the
+   * originals were tuned to sit on a near-black ground and drop to ~2.5:1
+   * contrast on parchment, which is unreadable. Same hues, corrected for
+   * a light background. All text colours clear 4.5:1.
+   */
+  --color-parchment: #f3ecdf; /* page ground */
+  --color-surface: #fbf7ef; /* raised — cards, inputs */
+  --color-well: #e7ddca; /* recessed — image placeholders */
+  --color-line: #ded2bb; /* hairline borders */
+
+  --color-espresso: #171410; /* primary ink — 15.5:1 */
+  --color-muted: #6f6250; /* secondary ink — 5.1:1 */
+
+  --color-brass: #b8905a; /* decorative only: rules, swatch stitch */
+  --color-brass-deep: #8a6534; /* brass as text or button — 4.5:1 */
+
+  --color-sage: #5a6b4a; /* available — 4.9:1 */
+  --color-rust: #8f4636; /* unavailable — 5.8:1 */
 
   --font-display: var(--font-fraunces), Georgia, serif;
   --font-sans: var(--font-inter), system-ui, sans-serif;
@@ -16,12 +29,14 @@
 
 @layer base {
   html {
-    background-color: var(--color-espresso);
-    color: var(--color-parchment);
+    background-color: var(--color-parchment);
+    color: var(--color-espresso);
     font-family: var(--font-sans);
     -webkit-tap-highlight-color: transparent;
     /* Stops iOS inflating text in landscape. */
     -webkit-text-size-adjust: 100%;
+    /* Keeps form controls and scrollbars in the light scheme. */
+    color-scheme: light;
   }
 
   /*
@@ -35,7 +50,7 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  /* Form controls inherit the dark ground rather than the OS default. */
+  /* Form controls inherit the page ground rather than the OS default. */
   input,
   select,
   textarea,
@@ -45,16 +60,16 @@
   }
 
   select option {
-    background-color: var(--color-espresso-raised);
-    color: var(--color-parchment);
+    background-color: var(--color-surface);
+    color: var(--color-espresso);
   }
 
   ::selection {
-    background-color: color-mix(in srgb, var(--color-brass) 40%, transparent);
+    background-color: color-mix(in srgb, var(--color-brass) 35%, transparent);
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-brass);
+    outline: 2px solid var(--color-brass-deep);
     outline-offset: 2px;
   }
 }
@@ -71,23 +86,23 @@
   .u-field {
     width: 100%;
     border-radius: 0.125rem;
-    border: 1px solid color-mix(in srgb, var(--color-brass) 25%, transparent);
-    background-color: var(--color-espresso-raised);
+    border: 1px solid var(--color-line);
+    background-color: var(--color-surface);
     padding: 0.75rem 0.875rem;
     font-size: 1rem; /* 16px keeps iOS Safari from zooming on focus. */
-    color: var(--color-parchment);
+    color: var(--color-espresso);
     transition: border-color 150ms ease;
   }
 
   .u-field::placeholder {
-    color: color-mix(in srgb, var(--color-muted) 70%, transparent);
+    color: color-mix(in srgb, var(--color-muted) 65%, transparent);
   }
 
   .u-field:hover {
-    border-color: color-mix(in srgb, var(--color-brass) 45%, transparent);
+    border-color: var(--color-brass);
   }
 
-  /* Primary action: solid brass on espresso. */
+  /* Primary action: solid brass on parchment. */
   .u-btn {
     display: inline-flex;
     align-items: center;
@@ -95,15 +110,16 @@
     gap: 0.5rem;
     min-height: 2.75rem; /* comfortable thumb target */
     border-radius: 0.125rem;
-    background-color: var(--color-brass);
+    background-color: var(--color-brass-deep);
     padding: 0.75rem 1.25rem;
-    color: var(--color-espresso);
+    color: var(--color-parchment);
     font-weight: 500;
     transition: background-color 150ms ease;
   }
 
   .u-btn:hover:not(:disabled) {
-    background-color: color-mix(in srgb, var(--color-brass) 85%, white);
+    /* Darken on hover — lightening would wash out against parchment. */
+    background-color: color-mix(in srgb, var(--color-brass-deep) 85%, black);
   }
 
   .u-btn:disabled {
@@ -119,9 +135,9 @@
     gap: 0.5rem;
     min-height: 2.75rem;
     border-radius: 0.125rem;
-    border: 1px solid color-mix(in srgb, var(--color-brass) 35%, transparent);
+    border: 1px solid var(--color-line);
     padding: 0.75rem 1.25rem;
-    color: var(--color-parchment);
+    color: var(--color-espresso);
     transition:
       border-color 150ms ease,
       background-color 150ms ease;
@@ -129,7 +145,7 @@
 
   .u-btn-ghost:hover:not(:disabled) {
     border-color: var(--color-brass);
-    background-color: color-mix(in srgb, var(--color-brass) 8%, transparent);
+    background-color: color-mix(in srgb, var(--color-brass) 12%, transparent);
   }
 
   .u-btn-ghost:disabled {

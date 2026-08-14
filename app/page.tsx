@@ -32,7 +32,7 @@ export default async function HomePage() {
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-12 sm:px-8 sm:py-16">
         <div className="mb-14">
-          <p className="u-caps text-brass">The Collections</p>
+          <p className="u-caps text-brass-deep">The Collections</p>
           <h1 className="font-display mt-5 text-4xl leading-[1.15] sm:text-5xl">
             {total === 0
               ? "Your catalog starts here."
@@ -53,17 +53,17 @@ export default async function HomePage() {
               <Link
                 key={category.slug}
                 href={`/category/${category.slug}`}
-                className="group border-brass/15 hover:border-brass/40 hover:bg-espresso-raised border p-7 transition-colors sm:p-9"
+                className="group border-line hover:border-brass hover:bg-surface border p-7 transition-colors sm:p-9"
               >
                 <SectionLabel>
                   {count} {count === 1 ? "piece" : "pieces"}
                 </SectionLabel>
 
-                <h2 className="font-display group-hover:text-brass mt-5 text-3xl transition-colors sm:text-[2rem]">
+                <h2 className="font-display group-hover:text-brass-deep mt-5 text-3xl transition-colors sm:text-[2rem]">
                   {category.label}
                 </h2>
 
-                <span className="u-caps text-muted group-hover:text-brass mt-6 inline-block transition-colors">
+                <span className="u-caps text-muted group-hover:text-brass-deep mt-6 inline-block transition-colors">
                   View &rarr;
                 </span>
               </Link>

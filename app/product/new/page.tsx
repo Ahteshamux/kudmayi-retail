@@ -20,7 +20,7 @@ export default async function NewProductPage({
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-10 sm:px-8 sm:py-14">
         <Link
           href={backHref}
-          className="u-caps text-muted hover:text-brass mb-8 inline-block transition-colors"
+          className="u-caps text-muted hover:text-brass-deep mb-8 inline-block transition-colors"
         >
           &larr; Back
         </Link>

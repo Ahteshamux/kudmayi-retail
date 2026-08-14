@@ -41,7 +41,7 @@ export default async function ProductPage({
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-10 sm:px-8 sm:py-14">
         <Link
           href={backHref}
-          className="u-caps text-muted hover:text-brass mb-8 inline-block transition-colors"
+          className="u-caps text-muted hover:text-brass-deep mb-8 inline-block transition-colors"
         >
           &larr; {categoryLabel(product.category)}
         </Link>
@@ -64,7 +64,7 @@ export default async function ProductPage({
           </>
         ) : (
           <div className="grid gap-10 md:grid-cols-2 md:gap-14">
-            <div className="border-brass/15 bg-espresso-raised relative aspect-[3/4] overflow-hidden border">
+            <div className="border-line bg-well relative aspect-[3/4] overflow-hidden border">
               {product.image_url ? (
                 <Image
                   src={product.image_url}
@@ -75,7 +75,7 @@ export default async function ProductPage({
                   className="object-cover"
                 />
               ) : (
-                <div className="text-muted/50 u-caps flex h-full items-center justify-center">
+                <div className="text-muted/70 u-caps flex h-full items-center justify-center">
                   No photo
                 </div>
               )}
@@ -96,7 +96,7 @@ export default async function ProductPage({
                 <AvailabilityBadge available={product.available} size="md" />
               </div>
 
-              <dl className="border-brass/15 mt-10 space-y-5 border-t pt-8">
+              <dl className="border-line mt-10 space-y-5 border-t pt-8">
                 <div className="flex justify-between gap-6">
                   <dt className="u-caps text-muted">Colour</dt>
                   <dd className="text-right">{product.color}</dd>
@@ -119,7 +119,7 @@ export default async function ProductPage({
                 </div>
               </dl>
 
-              <div className="border-brass/15 mt-10 flex flex-wrap items-center gap-3 border-t pt-8">
+              <div className="border-line mt-10 flex flex-wrap items-center gap-3 border-t pt-8">
                 <Link
                   href={`/product/${product.id}?edit=1`}
                   className="u-btn u-caps"

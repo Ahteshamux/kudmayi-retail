@@ -95,7 +95,7 @@ export function ImageUpload({ value, onChange, onUploadingChange }: Props) {
     <div className="space-y-3">
       <span className="u-caps text-muted block">Photo</span>
 
-      <div className="border-brass/25 bg-espresso-raised relative aspect-[3/4] w-full max-w-[240px] overflow-hidden border">
+      <div className="border-line bg-well relative aspect-[3/4] w-full max-w-[240px] overflow-hidden border">
         {shown ? (
           preview ? (
             // Local blob preview — plain img, next/image can't optimise it.
@@ -115,13 +115,13 @@ export function ImageUpload({ value, onChange, onUploadingChange }: Props) {
             />
           )
         ) : (
-          <div className="text-muted/60 u-caps flex h-full items-center justify-center text-center">
+          <div className="text-muted/70 u-caps flex h-full items-center justify-center text-center">
             No photo yet
           </div>
         )}
 
         {uploading && (
-          <div className="bg-espresso/70 u-caps text-parchment absolute inset-0 flex items-center justify-center">
+          <div className="bg-parchment/85 u-caps text-espresso absolute inset-0 flex items-center justify-center">
             Uploading…
           </div>
         )}

@@ -11,8 +11,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Catalog management for Kudmayi.",
     start_url: "/",
     display: "standalone",
-    background_color: "#171410",
-    theme_color: "#171410",
+    background_color: "#F3ECDF",
+    theme_color: "#F3ECDF",
     icons: [
       {
         src: "/icon.svg",

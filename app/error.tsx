@@ -36,7 +36,7 @@ export default function Error({
 
         {/* Useful when she reports a problem; meaningless noise otherwise. */}
         {error.digest && (
-          <p className="text-muted/50 mt-8 font-mono text-[0.625rem]">
+          <p className="text-muted/70 mt-8 font-mono text-[0.625rem]">
             {error.digest}
           </p>
         )}

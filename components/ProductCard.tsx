@@ -8,9 +8,9 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <Link
       href={`/product/${product.id}`}
-      className="group border-brass/15 hover:border-brass/40 block border transition-colors"
+      className="group border-line hover:border-brass block border transition-colors"
     >
-      <div className="bg-espresso-raised relative aspect-[3/4] overflow-hidden">
+      <div className="bg-well relative aspect-[3/4] overflow-hidden">
         {product.image_url ? (
           <Image
             src={product.image_url}
@@ -22,7 +22,7 @@ export function ProductCard({ product }: { product: Product }) {
             }`}
           />
         ) : (
-          <div className="text-muted/50 u-caps flex h-full items-center justify-center">
+          <div className="text-muted/70 u-caps flex h-full items-center justify-center">
             No photo
           </div>
         )}
@@ -34,7 +34,7 @@ export function ProductCard({ product }: { product: Product }) {
       </div>
 
       <div className="space-y-2.5 p-3">
-        <h3 className="font-display group-hover:text-brass text-[0.95rem] leading-snug transition-colors">
+        <h3 className="font-display group-hover:text-brass-deep text-[0.95rem] leading-snug transition-colors">
           {product.name}
         </h3>
         <AvailabilityBadge available={product.available} />

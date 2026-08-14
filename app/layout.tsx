@@ -27,14 +27,14 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "Kudmayi",
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
   },
   // Internal tool — keep it out of search results.
   robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#171410",
+  themeColor: "#F3ECDF",
   // Let the page fill a notched screen; padding below keeps content clear.
   viewportFit: "cover",
   // Capped rather than disabled — pinching to inspect a fabric detail is
@@ -52,7 +52,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       // noise and would otherwise bury real ones.
       suppressHydrationWarning
     >
-      <body className="bg-espresso text-parchment flex min-h-full flex-col">
+      <body className="bg-parchment text-espresso flex min-h-full flex-col">
         {children}
       </body>
     </html>

@@ -13,11 +13,11 @@ export default function ProductLoading() {
 
           <div>
             <Skeleton className="h-3 w-24" />
-            <div className="bg-brass/30 mt-2.5 h-px w-full" />
+            <div className="bg-brass/60 mt-2.5 h-px w-full" />
             <Skeleton className="mt-5 h-12 w-4/5" />
             <Skeleton className="mt-7 h-7 w-32" />
 
-            <div className="border-brass/15 mt-10 space-y-5 border-t pt-8">
+            <div className="border-line mt-10 space-y-5 border-t pt-8">
               {Array.from({ length: 3 }).map((_, i) => (
                 <Skeleton key={i} className="h-4 w-full" />
               ))}

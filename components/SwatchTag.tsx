@@ -7,7 +7,7 @@
  */
 export function SwatchTag({ color }: { color: string }) {
   return (
-    <span className="border-brass/40 bg-espresso/85 text-parchment relative inline-flex items-center rounded-r-[2px] border border-l-0 py-1 pr-2.5 pl-3 backdrop-blur-sm">
+    <span className="border-brass bg-parchment/90 text-espresso relative inline-flex items-center rounded-r-[2px] border border-l-0 py-1 pr-2.5 pl-3 backdrop-blur-sm">
       {/* the stitch */}
       <span
         aria-hidden
