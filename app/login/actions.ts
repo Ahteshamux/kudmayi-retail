@@ -25,13 +25,22 @@ function readableError(message: string): string {
   if (message === "Failed to fetch" || message.includes("fetch failed")) {
     return "Can't reach the server. Check your internet connection and try again.";
   }
+  if (
+    message.includes("API key") ||
+    message.includes("Invalid API key") ||
+    message.includes("JWT")
+  ) {
+    return "The Supabase key is wrong or doesn't belong to this project. Check both values match the same project, then rebuild.";
+  }
   if (message.includes("Email not confirmed")) {
     return "This account hasn't been confirmed yet. Confirm it in Supabase under Authentication → Users.";
   }
   if (message.includes("rate limit") || message.includes("Too many")) {
     return "Too many attempts. Wait a minute, then try again.";
   }
-  return message;
+  // Anything unrecognised is shown verbatim rather than swallowed — an
+  // opaque failure is impossible to report or diagnose.
+  return `Sign in failed: ${message}`;
 }
 
 /**
@@ -56,9 +65,11 @@ export async function signIn(
     return { error: "Enter your email and password." };
   }
 
-  const supabase = await createClient();
-
+  // createClient() must stay inside the try: it throws outright when the URL
+  // or key is missing or malformed, and an uncaught throw here shows the
+  // crash page instead of telling her what's actually wrong.
   try {
+    const supabase = await createClient();
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
