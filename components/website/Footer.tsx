@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { InfoDialog } from "./InfoDialog";
 import { SizeGuideContent } from "./SizeGuideContent";
+import { CONTACT_EMAIL } from "@/lib/website/constants";
 import { whatsAppLink } from "@/lib/website/whatsapp";
 
 const COLUMNS: { heading: string; links: { label: string; href: string }[] }[] = [
@@ -160,10 +161,10 @@ export function Footer() {
             +92 300 1234567
           </a>
           <a
-            href="mailto:hello@kudmayi.com"
+            href={`mailto:${CONTACT_EMAIL}`}
             className="hover:text-brass-deep transition-colors"
           >
-            hello@kudmayi.com
+            {CONTACT_EMAIL}
           </a>
           <a
             href="https://instagram.com/kudmayi"

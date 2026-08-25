@@ -1,6 +1,6 @@
 import type { Product } from "@/lib/website/products";
 import type { ShopCategorySlug } from "@/lib/website/categories";
-import { SITE_URL } from "@/lib/website/constants";
+import { CONTACT_EMAIL, SITE_URL } from "@/lib/website/constants";
 import { shopCategoryLabel } from "@/lib/website/categories";
 
 /* ------------------------------------------------------------------ */
@@ -36,7 +36,7 @@ export function organizationJsonLd() {
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer service",
-      email: "hello@kudmayi.com",
+      email: CONTACT_EMAIL,
       availableLanguage: ["English", "Urdu"],
     },
     sameAs: ["https://instagram.com/kudmayi"],

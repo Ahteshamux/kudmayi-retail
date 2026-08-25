@@ -5,6 +5,7 @@ import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { ProductImagesUploader } from "./ProductImagesUploader";
 import { slugify, type ActionState, type ImageInput } from "@/lib/website/admin-products-shared";
+import { SITE_HOST } from "@/lib/website/constants";
 import { SHOP_CATEGORIES } from "@/lib/website/categories";
 import type { Product } from "@/lib/website/products";
 
@@ -88,7 +89,7 @@ export function ProductForm({
           className="u-field font-mono text-sm"
         />
         <p className="text-muted text-xs">
-          kudmayi.com/product/{slug || "…"} — changing this changes the public link.
+          {SITE_HOST}/product/{slug || "…"} — changing this changes the public link.
         </p>
       </div>
 
