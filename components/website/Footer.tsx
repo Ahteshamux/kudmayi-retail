@@ -2,7 +2,7 @@ import Link from "next/link";
 import { InfoDialog } from "./InfoDialog";
 import { SizeGuideContent } from "./SizeGuideContent";
 import { CONTACT_EMAIL } from "@/lib/website/constants";
-import { whatsAppLink } from "@/lib/website/whatsapp";
+import { PHONE_DISPLAY, PHONE_HREF, whatsAppLink } from "@/lib/website/whatsapp";
 
 const COLUMNS: { heading: string; links: { label: string; href: string }[] }[] = [
   {
@@ -156,9 +156,8 @@ export function Footer() {
           >
             WhatsApp
           </Link>
-          {/* TODO(pre-launch): placeholder phone/email — replace with real contact details. */}
-          <a href="tel:+923001234567" className="hover:text-brass-deep transition-colors">
-            +92 300 1234567
+          <a href={`tel:${PHONE_HREF}`} className="hover:text-brass-deep transition-colors">
+            {PHONE_DISPLAY}
           </a>
           <a
             href={`mailto:${CONTACT_EMAIL}`}

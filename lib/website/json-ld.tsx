@@ -2,6 +2,7 @@ import type { Product } from "@/lib/website/products";
 import type { ShopCategorySlug } from "@/lib/website/categories";
 import { CONTACT_EMAIL, SITE_URL } from "@/lib/website/constants";
 import { shopCategoryLabel } from "@/lib/website/categories";
+import { PHONE_HREF } from "@/lib/website/whatsapp";
 
 /* ------------------------------------------------------------------ */
 /*  Generic JSON-LD renderer                                          */
@@ -36,6 +37,8 @@ export function organizationJsonLd() {
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer service",
+      // E.164 with the leading "+", which is what schema.org expects.
+      telephone: PHONE_HREF,
       email: CONTACT_EMAIL,
       availableLanguage: ["English", "Urdu"],
     },
