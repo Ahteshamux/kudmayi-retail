@@ -1,21 +1,26 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/website/constants";
 import { SHOP_CATEGORIES } from "@/lib/website/categories";
+import { listAllProducts } from "@/lib/website/products";
 
 /**
- * Static sitemap covering every public route: the homepage, the
- * custom-kurta page, each category listing, and every product in the
- * placeholder catalog (40 products, mapped from their slugs).
+ * Covers every public route: the homepage, the custom-kurta page, each
+ * category listing, and every published product.
  *
- * This file deliberately avoids importing from `lib/website/products.ts`
- * because that module pulls in the `postgres` driver (Node.js-only), and
- * the sitemap is compiled as an App Route where those modules can't be
- * resolved. Instead the product slugs are imported from a standalone
- * data file with no server-only dependencies.
+ * Products come from the live catalog, not a hardcoded list — otherwise
+ * anything added through /admin/products would never be submitted to
+ * search engines, and anything deleted would keep being submitted as a
+ * 404. listAllProducts() falls back to the placeholder catalog if the
+ * database is unreachable, so this route still renders either way.
+ *
+ * This is a server-side route, so importing the Drizzle-backed module is
+ * fine here — the "can't import products.ts" constraint applies only to
+ * Client Components, which would drag the `postgres` driver into the
+ * browser bundle (see lib/website/pricing.ts).
  */
-import { PRODUCT_SLUGS } from "@/lib/website/product-slugs";
+export const dynamic = "force-dynamic";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   const staticPages: MetadataRoute.Sitemap = [
@@ -40,8 +45,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.9,
   }));
 
-  const productPages: MetadataRoute.Sitemap = PRODUCT_SLUGS.map((slug) => ({
-    url: `${SITE_URL}/product/${slug}`,
+  const products = await listAllProducts();
+  const productPages: MetadataRoute.Sitemap = products.map((p) => ({
+    url: `${SITE_URL}/product/${p.slug}`,
     lastModified: now,
     changeFrequency: "weekly" as const,
     priority: 0.8,

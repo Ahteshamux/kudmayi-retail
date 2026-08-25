@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SITE_URL } from "@/lib/website/constants";
 import { whatsAppLink } from "@/lib/website/whatsapp";
 
 export const metadata: Metadata = {
   title: "Custom Kurtas",
   description:
     "Choose your fabric, colour, fit and details — Kudmayi builds your kurta around you.",
+  alternates: { canonical: `${SITE_URL}/custom-kurta` },
 };
 
 /**

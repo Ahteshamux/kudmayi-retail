@@ -26,7 +26,16 @@ export async function generateMetadata({
 }: PageProps<"/search">): Promise<Metadata> {
   const { q } = await searchParams;
   const query = typeof q === "string" ? q : "";
-  return { title: query ? `Search: ${query}` : "Search" };
+  return {
+    title: query ? `Search: ${query}` : "Search",
+    /*
+     * Internal search results shouldn't be in Google's index — every
+     * distinct ?q= is a separate thin, near-duplicate URL, which is
+     * exactly what Google's guidelines call out as low-value. `follow`
+     * so the crawler still walks through to the product pages it links.
+     */
+    robots: { index: false, follow: true },
+  };
 }
 
 /**

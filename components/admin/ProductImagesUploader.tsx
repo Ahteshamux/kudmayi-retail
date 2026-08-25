@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useRef, useState } from "react";
+import { AutoGrowTextarea } from "./AutoGrowTextarea";
 import { compressImage } from "@/lib/image";
 import { createClient } from "@/lib/supabase/client";
 import { STOREFRONT_BUCKET, type ImageInput } from "@/lib/website/admin-products-shared";
@@ -105,6 +106,28 @@ export function ProductImagesUploader({
     <div className="space-y-3">
       <span className="u-caps text-muted block">Photos</span>
 
+      <div className="border-line bg-surface border p-4">
+        <p className="text-muted text-sm leading-relaxed">
+          <strong className="text-espresso">1200 × 1600 px or larger, portrait (3:4).</strong>{" "}
+          Shoot or crop the full garment upright with a little space around it — product
+          photos are shown in a tall frame everywhere on the site.
+        </p>
+        <ul className="text-muted mt-2.5 space-y-1.5 text-sm leading-relaxed">
+          <li>
+            <strong className="text-espresso">The first photo is the cover</strong> — it&rsquo;s
+            what shows on listing pages. Drag order with the arrows below each photo.
+          </li>
+          <li>
+            <strong className="text-espresso">Add at least two.</strong> The second is used for
+            the hover effect on product cards, so a different angle works best.
+          </li>
+          <li>
+            Keep a consistent background and crop across a category — it&rsquo;s what makes a
+            listing page look like one collection rather than a scrapbook.
+          </li>
+        </ul>
+      </div>
+
       {images.length > 0 && (
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {images.map((img, i) => (
@@ -118,12 +141,11 @@ export function ProductImagesUploader({
                 )}
               </div>
               <div className="space-y-2 p-2.5">
-                <input
-                  type="text"
+                <AutoGrowTextarea
                   value={img.altText}
-                  onChange={(e) => setAltText(img.key, e.target.value)}
-                  placeholder="Alt text"
-                  className="u-field text-xs"
+                  onChange={(value) => setAltText(img.key, value)}
+                  placeholder="Alt text — describe the photo"
+                  className="text-xs"
                 />
                 <div className="flex items-center justify-between gap-1">
                   <div className="flex gap-1">

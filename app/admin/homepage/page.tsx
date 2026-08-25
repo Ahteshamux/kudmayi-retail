@@ -25,10 +25,35 @@ export default async function HomepageAdminPage() {
         <div className="mb-4">
           <p className="u-caps text-brass-deep">Homepage</p>
           <h1 className="font-display mt-4 text-3xl sm:text-4xl">Photography</h1>
-          <p className="text-muted mt-3 max-w-lg text-sm">
+          <p className="text-muted mt-3 max-w-xl text-sm">
             Every photo on the homepage, grouped by section. Replace any of them —
             changes go live immediately, no separate publish step.
           </p>
+
+          <div className="border-line bg-surface mt-6 max-w-xl border p-5">
+            <p className="u-caps text-brass-deep">Before you upload</p>
+            <ul className="text-muted mt-3 space-y-2 text-sm leading-relaxed">
+              <li>
+                <strong className="text-espresso">Each slot lists its own size.</strong>{" "}
+                Bigger than the listed size is fine; smaller looks soft and can&rsquo;t be
+                undone.
+              </li>
+              <li>
+                <strong className="text-espresso">One photo, three crops.</strong> The same
+                file is cut differently on phone, tablet, and desktop — so keep the subject
+                centred with breathing room on all sides. Anything near an edge will be
+                trimmed off on some screens.
+              </li>
+              <li>
+                <strong className="text-espresso">JPEG, under about 1 MB.</strong> Photos are
+                compressed automatically on upload, but starting smaller keeps the site fast.
+              </li>
+              <li>
+                <strong className="text-espresso">Always fill in the alt text.</strong> It
+                describes the photo to shoppers using a screen reader, and Google reads it too.
+              </li>
+            </ul>
+          </div>
         </div>
 
         {!db && (
@@ -48,12 +73,15 @@ export default async function HomepageAdminPage() {
               <h2 className="font-display border-line mb-5 border-b pb-3 text-2xl">
                 {section}
               </h2>
-              <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {slots.map((slot) => (
                   <HomepageImageSlot
                     key={slot.key}
                     slotKey={slot.key}
                     label={slot.label}
+                    recommended={slot.recommended}
+                    shape={slot.shape}
+                    note={slot.note}
                     currentSrc={images[slot.key]?.src ?? slot.fallback.src}
                     currentAlt={images[slot.key]?.alt ?? slot.fallback.alt}
                   />

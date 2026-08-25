@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useRef, useState, useTransition } from "react";
+import { AutoGrowTextarea } from "./AutoGrowTextarea";
 import { saveHomepageImage } from "@/app/admin/homepage/actions";
 import { compressImage, FULL_BLEED_MAX_EDGE } from "@/lib/image";
 import { createClient } from "@/lib/supabase/client";
@@ -16,11 +17,17 @@ import { STOREFRONT_BUCKET } from "@/lib/website/admin-products-shared";
 export function HomepageImageSlot({
   slotKey,
   label,
+  recommended,
+  shape,
+  note,
   currentSrc,
   currentAlt,
 }: {
   slotKey: string;
   label: string;
+  recommended: string;
+  shape: string;
+  note?: string;
   currentSrc: string;
   currentAlt: string;
 }) {
@@ -103,6 +110,14 @@ export function HomepageImageSlot({
 
       <p className="u-caps text-muted text-xs">{label}</p>
 
+      {/* Sizing guidance, so nobody has to guess what to export. */}
+      <p className="text-muted text-xs leading-relaxed">
+        <span className="text-espresso font-medium">{recommended} px</span> or larger
+        <br />
+        {shape}
+      </p>
+      {note && <p className="text-muted/80 text-xs leading-relaxed">{note}</p>}
+
       <input
         ref={inputRef}
         type="file"
@@ -120,14 +135,16 @@ export function HomepageImageSlot({
         Replace
       </button>
 
-      <input
-        type="text"
-        value={altText}
-        onChange={(e) => setAltText(e.target.value)}
-        onBlur={() => persist(src, altText)}
-        placeholder="Alt text"
-        className="u-field text-xs"
-      />
+      <label className="block">
+        <span className="text-muted text-xs">Alt text</span>
+        <AutoGrowTextarea
+          value={altText}
+          onChange={setAltText}
+          onBlur={() => persist(src, altText)}
+          placeholder="Describe the photo"
+          className="mt-1 text-xs"
+        />
+      </label>
 
       {isPending && <p className="text-muted text-xs">Saving…</p>}
       {saved && !isPending && <p className="text-sage text-xs">Saved.</p>}
