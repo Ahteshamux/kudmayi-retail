@@ -1,5 +1,5 @@
 {
-  "name": "kudmayi-retail",
+  "name": "kudmayi",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,12 +8,17 @@
     "start": "next start",
     "lint": "eslint",
     "verify": "node scripts/verify-setup.mjs",
-    "add-user": "node scripts/add-user.mjs"
+    "add-user": "node scripts/add-user.mjs",
+    "db:generate": "drizzle-kit generate",
+    "db:studio": "drizzle-kit studio",
+    "seed-storefront": "tsx scripts/seed-storefront-products.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.3",
+    "drizzle-orm": "^0.45.2",
     "next": "16.3.0",
+    "postgres": "^3.4.9",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
@@ -22,6 +27,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
     "tailwindcss": "^4",

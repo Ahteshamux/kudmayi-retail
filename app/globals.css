@@ -23,8 +23,33 @@
   --color-sage: #5a6b4a; /* available — 4.9:1 */
   --color-rust: #8f4636; /* unavailable — 5.8:1 */
 
+  /* Secondary section ground for the public site — alternates with
+     parchment to give long editorial scrolls rhythm without ever going
+     white. */
+  --color-sand: #ece3d0;
+
+  /* Rich dark brown for the announcement bar — distinct from both
+     near-black espresso and the mid-tone brass accent. Parchment text on
+     this clears well past 7:1. */
+  --color-bark: #3b2a1d;
+
   --font-display: var(--font-fraunces), Georgia, serif;
   --font-sans: var(--font-inter), system-ui, sans-serif;
+}
+
+/*
+ * Semantic aliases onto the palette above — deliberately declared outside
+ * @theme so Tailwind doesn't turn them into utilities (a `--color-*` inside
+ * @theme generates `bg-background`/`text-text`, which would fight the
+ * concrete names below). Components keep using the concrete names
+ * (parchment/espresso/brass-deep/line); these exist only so the design
+ * system's background/text/border/accent roles are inspectable by name.
+ */
+:root {
+  --color-background: var(--color-parchment);
+  --color-text: var(--color-espresso);
+  --color-border: var(--color-line);
+  --color-accent: var(--color-brass-deep);
 }
 
 @layer base {
@@ -151,5 +176,70 @@
   .u-btn-ghost:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  /* Wide, generous horizontal container for the public site's editorial
+     sections — wider than the admin tool's max-w-6xl catalog grid. */
+  .u-container {
+    max-width: 90rem; /* 1440px */
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+  @media (min-width: 40rem) {
+    .u-container {
+      padding-inline: 2rem;
+    }
+  }
+
+  /* Large, responsive vertical rhythm between homepage sections — the
+     whitespace the spec keeps insisting on. */
+  .u-section {
+    padding-block: clamp(4rem, 8vw, 9rem);
+  }
+
+  /*
+   * Reveal-on-scroll base state. Fully visible by default — the safe
+   * fallback for no-JS and for anyone who hasn't asked for motion. Only
+   * animates for users who haven't set prefers-reduced-motion, and only
+   * once a small IntersectionObserver client component (Reveal.tsx) adds
+   * .is-visible.
+   */
+  .reveal {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      opacity: 0;
+      transform: translateY(1rem);
+      transition:
+        opacity 700ms ease,
+        transform 700ms ease;
+    }
+    .reveal.is-visible {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /*
+   * Entrance for full-screen panels that mount on open — currently the
+   * mobile nav drawer. Skipped entirely under prefers-reduced-motion, so
+   * the panel simply appears.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    .u-panel-in {
+      animation: u-panel-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+  }
+}
+
+@keyframes u-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }

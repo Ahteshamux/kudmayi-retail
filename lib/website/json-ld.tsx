@@ -1,0 +1,148 @@
+import type { Product } from "@/lib/website/products";
+import type { ShopCategorySlug } from "@/lib/website/categories";
+import { SITE_URL } from "@/lib/website/constants";
+import { shopCategoryLabel } from "@/lib/website/categories";
+
+/* ------------------------------------------------------------------ */
+/*  Generic JSON-LD renderer                                          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Renders a JSON-LD `<script>` tag. Drop this anywhere in a Server
+ * Component and Next.js will hoist it into `<head>`.
+ */
+export function JsonLd({ data }: { data: Record<string, unknown> }) {
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+    />
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Organization — shown on every public page via the website layout   */
+/* ------------------------------------------------------------------ */
+
+export function organizationJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Kudmayi",
+    url: SITE_URL,
+    logo: `${SITE_URL}/icon.svg`,
+    description:
+      "Kudmayi — Pakistani menswear and weddingwear house. Sherwanis, prince coats, waistcoats, kurtas, and bespoke tailoring, crafted for the occasion.",
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer service",
+      email: "hello@kudmayi.com",
+      availableLanguage: ["English", "Urdu"],
+    },
+    sameAs: ["https://instagram.com/kudmayi"],
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/*  WebSite — enables sitelinks search box in Google SERPs             */
+/* ------------------------------------------------------------------ */
+
+export function webSiteJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Kudmayi",
+    url: SITE_URL,
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/*  BreadcrumbList — renders breadcrumb trails in SERPs                */
+/* ------------------------------------------------------------------ */
+
+export function breadcrumbJsonLd(
+  items: { name: string; url?: string }[],
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.name,
+      ...(item.url ? { item: item.url } : {}),
+    })),
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Product — the big one for e-commerce rich results                  */
+/* ------------------------------------------------------------------ */
+
+export function productJsonLd(product: Product) {
+  const url = `${SITE_URL}/product/${product.slug}`;
+  const price = product.salePriceRupees ?? product.priceRupees;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    url,
+    image: [product.image.src, product.hoverImage.src],
+    description:
+      product.description ??
+      `${product.name} — ${shopCategoryLabel(product.category).toLowerCase()} from Kudmayi. Hand-finished Pakistani menswear crafted for the occasion.`,
+    color: product.colorName,
+    brand: {
+      "@type": "Brand",
+      name: "Kudmayi",
+    },
+    offers: {
+      "@type": "Offer",
+      url,
+      priceCurrency: "PKR",
+      price,
+      ...(product.salePriceRupees !== null
+        ? {
+            priceValidUntil: new Date(
+              Date.now() + 30 * 24 * 60 * 60 * 1000,
+            )
+              .toISOString()
+              .split("T")[0],
+          }
+        : {}),
+      availability: product.readyToShip
+        ? "https://schema.org/InStock"
+        : "https://schema.org/PreOrder",
+      itemCondition: "https://schema.org/NewCondition",
+      seller: {
+        "@type": "Organization",
+        name: "Kudmayi",
+      },
+    },
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/*  ItemList — for category / collection pages                         */
+/* ------------------------------------------------------------------ */
+
+export function itemListJsonLd(
+  category: ShopCategorySlug,
+  products: Product[],
+) {
+  const label = shopCategoryLabel(category);
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `${label} — Kudmayi`,
+    url: `${SITE_URL}/shop/${category}`,
+    numberOfItems: products.length,
+    itemListElement: products.map((p, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      url: `${SITE_URL}/product/${p.slug}`,
+      name: p.name,
+    })),
+  };
+}

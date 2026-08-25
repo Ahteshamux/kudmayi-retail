@@ -8,14 +8,14 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
 
 const nextConfig: NextConfig = {
   /*
-   * Never let a shared cache hold on to HTML or Server Action responses.
-   * Hashed assets under _next/static stay cacheable — their filenames change
-   * every build, so they can't go stale.
+   * Never let a shared cache hold on to the admin tool's HTML or Server
+   * Action responses — it's auth-gated and its own data changes constantly.
+   * The public storefront is static/cacheable, so it's excluded here.
    */
   async headers() {
     return [
       {
-        source: "/((?!_next/static|_next/image).*)",
+        source: "/admin/:path*",
         headers: [
           { key: "Cache-Control", value: "no-store, must-revalidate" },
         ],
@@ -23,15 +23,24 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    remotePatterns: supabaseHost
-      ? [
-          {
-            protocol: "https",
-            hostname: supabaseHost,
-            pathname: "/storage/v1/object/public/**",
-          },
-        ]
-      : [],
+    remotePatterns: [
+      ...(supabaseHost
+        ? [
+            {
+              protocol: "https" as const,
+              hostname: supabaseHost,
+              pathname: "/storage/v1/object/public/**",
+            },
+          ]
+        : []),
+      // Temporary placeholder photography for the public site — swap for
+      // owned/licensed assets before production. TODO(pre-launch).
+      {
+        protocol: "https" as const,
+        hostname: "images.unsplash.com",
+        pathname: "/**",
+      },
+    ],
   },
 };
 

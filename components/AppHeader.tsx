@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { signOut } from "@/app/auth-actions";
+import { signOut } from "@/app/admin/catalog/auth-actions";
 
 export function AppHeader() {
   return (
     <header className="border-line border-b">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
-        <Link href="/" className="group">
+        <Link href="/admin/catalog" className="group">
           <span className="font-display text-brass-deep text-lg tracking-[0.28em] uppercase">
             Kudmayi
           </span>

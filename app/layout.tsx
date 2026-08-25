@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
+import { SITE_URL } from "@/lib/website/constants";
 import "./globals.css";
 
 // Fraunces is display-only — headings, all at regular weight. Pinning the
@@ -20,17 +21,22 @@ const inter = Inter({
   display: "swap",
 });
 
+// Generic fallback only — the public site and the admin tool each set their
+// own title/description/robots in their own layout, since this root layout
+// now wraps both.
 export const metadata: Metadata = {
-  title: "Kudmayi Retail",
-  description: "Catalog management for Kudmayi.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Kudmayi",
+    template: "%s · Kudmayi",
+  },
+  description: "Kudmayi — Pakistani menswear and weddingwear.",
   // Saved to a phone home screen, this is the label under the icon.
   appleWebApp: {
     capable: true,
     title: "Kudmayi",
     statusBarStyle: "default",
   },
-  // Internal tool — keep it out of search results.
-  robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {
@@ -47,12 +53,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${fraunces.variable} ${inter.variable} h-full antialiased`}
-      // Browser extensions inject attributes onto <html> before React
-      // hydrates (password managers, ad blockers). Those mismatches are
-      // noise and would otherwise bury real ones.
+      // Browser extensions inject attributes onto <html> and <body> before
+      // React hydrates (password managers, ad blockers, colour pickers).
+      // Those mismatches are noise and would otherwise bury real ones.
+      // suppressHydrationWarning only covers the element it's on, never its
+      // children, so <body> needs its own — e.g. ColorZilla adds
+      // cz-shortcut-listen="true" to <body> specifically.
       suppressHydrationWarning
     >
-      <body className="bg-parchment text-espresso flex min-h-full flex-col">
+      <body
+        className="bg-parchment text-espresso flex min-h-full flex-col"
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>

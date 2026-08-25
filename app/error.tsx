@@ -30,7 +30,7 @@ export default function Error({
             Try again
           </button>
           <Link href="/" className="u-btn-ghost u-caps w-full">
-            Back to collections
+            Back home
           </Link>
         </div>
 

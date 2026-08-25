@@ -6,15 +6,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Everything except Next internals and static assets — those don't need a
-     * session check and skipping them keeps navigation quick.
-     *
-     * manifest.webmanifest must stay public: the browser fetches it without
-     * credentials when adding the app to a phone home screen, and a redirect
-     * there breaks the install silently.
-     */
-    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
-  ],
+  // The auth gate only protects the admin/catalog tool now — the rest of
+  // the site is the public storefront and needs no session check.
+  matcher: ["/admin/:path*"],
 };

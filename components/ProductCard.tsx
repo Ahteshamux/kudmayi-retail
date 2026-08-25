@@ -7,7 +7,7 @@ import type { Product } from "@/lib/types";
 export function ProductCard({ product }: { product: Product }) {
   return (
     <Link
-      href={`/product/${product.id}`}
+      href={`/admin/catalog/product/${product.id}`}
       className="group border-line hover:border-brass block border transition-colors"
     >
       <div className="bg-well relative aspect-[3/4] overflow-hidden">

@@ -1,8 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-/** Routes reachable without a session. Everything else redirects to /login. */
-const PUBLIC_PATHS = ["/login", "/health"];
+/** Routes reachable without a session. Everything else redirects to login. */
+const PUBLIC_PATHS = ["/admin/catalog/login"];
 
 /**
  * Refreshes the Supabase auth cookie on every request and gates the app.
@@ -45,14 +45,14 @@ export async function updateSession(request: NextRequest) {
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = "/admin/catalog/login";
     return NextResponse.redirect(url);
   }
 
   // Already signed in? Skip the login screen.
-  if (user && pathname === "/login") {
+  if (user && pathname === "/admin/catalog/login") {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/admin/catalog";
     return NextResponse.redirect(url);
   }
 

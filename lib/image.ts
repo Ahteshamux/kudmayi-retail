@@ -1,5 +1,17 @@
-/** Longest edge, in pixels, that we keep. Plenty for a full-bleed detail shot. */
+/**
+ * Longest edge, in pixels, that we keep by default. Sized for product
+ * photos, which never render wider than about half the viewport.
+ */
 const MAX_EDGE = 1600;
+
+/**
+ * Full-bleed homepage photography (hero, editorial bands, category tiles)
+ * spans 100vw, so the default cap leaves it visibly soft on a large or
+ * high-DPI display. 2560 covers a 2560px monitor at 1x and a 1440px
+ * laptop at 2x without pushing file sizes to 4K territory.
+ */
+export const FULL_BLEED_MAX_EDGE = 2560;
+
 const JPEG_QUALITY = 0.82;
 
 /**
@@ -9,11 +21,14 @@ const JPEG_QUALITY = 0.82;
  *
  * Browser-only — needs a canvas.
  */
-export async function compressImage(file: File): Promise<Blob> {
+export async function compressImage(
+  file: File,
+  maxEdge: number = MAX_EDGE,
+): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
 
   try {
-    const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+    const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
     const width = Math.round(bitmap.width * scale);
     const height = Math.round(bitmap.height * scale);
 

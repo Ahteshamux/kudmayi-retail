@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { deleteProduct } from "@/app/product/actions";
+import { deleteProduct } from "@/app/admin/catalog/product/actions";
 
 function Button({ name }: { name: string }) {
   const { pending } = useFormStatus();

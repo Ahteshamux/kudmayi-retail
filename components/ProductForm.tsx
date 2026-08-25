@@ -5,7 +5,7 @@ import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { ImageUpload } from "./ImageUpload";
 import { CATEGORIES, type CategorySlug } from "@/lib/categories";
-import type { ActionState } from "@/app/product/actions";
+import type { ActionState } from "@/app/admin/catalog/product/actions";
 import type { Product } from "@/lib/types";
 
 type Props = {

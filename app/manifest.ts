@@ -6,9 +6,9 @@ import type { MetadataRoute } from "next";
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Kudmayi Retail",
+    name: "Kudmayi",
     short_name: "Kudmayi",
-    description: "Catalog management for Kudmayi.",
+    description: "Crafted for the occasion — Pakistani menswear and weddingwear.",
     start_url: "/",
     display: "standalone",
     background_color: "#F3ECDF",
