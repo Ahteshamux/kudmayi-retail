@@ -18,23 +18,23 @@ const COLUMNS: { heading: string; links: { label: string; href: string }[] }[] =
   {
     heading: "Collections",
     links: [
-      { label: "Wedding", href: "#collections" },
-      { label: "Groom", href: "#collections" },
-      { label: "Eid", href: "#collections" },
-      { label: "Formal", href: "#collections" },
-      { label: "New Arrivals", href: "#collections" },
+      { label: "Wedding", href: "/#collections" },
+      { label: "Groom", href: "/#collections" },
+      { label: "Eid", href: "/#collections" },
+      { label: "Formal", href: "/#collections" },
+      { label: "New Arrivals", href: "/#collections" },
     ],
   },
   {
     heading: "Custom",
     links: [
       { label: "Custom Kurtas", href: "/custom-kurta" },
-      { label: "Bespoke", href: "#bespoke" },
+      { label: "Bespoke", href: "/#bespoke" },
     ],
   },
   {
     heading: "About",
-    links: [{ label: "Our Story", href: "#story" }],
+    links: [{ label: "Our Story", href: "/#story" }],
   },
 ];
 

@@ -10,7 +10,12 @@ export function AnnouncementBar() {
     <div className="bg-bark text-parchment px-4 py-2 text-center">
       <p className="u-caps">
         The Groom Edit Is Here{" "}
-        <Link href="#groom-edit" className="underline underline-offset-2">
+        {/* `/#groom-edit`, not a bare `#groom-edit` — this bar renders in
+            the layout, so it's on every route, and a bare hash only
+            resolves against the current page (dead on /shop, /product,
+            /search, /wishlist). The leading slash routes home, then
+            scrolls. */}
+        <Link href="/#groom-edit" className="underline underline-offset-2">
           Shop Now
         </Link>
       </p>
