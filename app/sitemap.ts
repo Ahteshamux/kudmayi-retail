@@ -17,8 +17,15 @@ import { listAllProducts } from "@/lib/website/products";
  * fine here — the "can't import products.ts" constraint applies only to
  * Client Components, which would drag the `postgres` driver into the
  * browser bundle (see lib/website/pricing.ts).
+ *
+ * Regenerated hourly rather than per-request: sitemaps are fetched by
+ * every crawler and SEO scraper that finds the site, none of them rate
+ * limited by us, and rendering on demand would mean an uncapped database
+ * query per bot hit for data that changes a few times a week. Search
+ * engines don't re-read a sitemap more often than this anyway, so a new
+ * product appears within the hour — well inside what crawlers act on.
  */
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
