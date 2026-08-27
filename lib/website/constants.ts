@@ -29,3 +29,11 @@ export const SITE_HOST = SITE_URL.replace(/^https?:\/\//, "");
  * so search engines and customers will both try to use it.
  */
 export const CONTACT_EMAIL = "hello@kudmayi.pk";
+
+/**
+ * Instagram. Stored without the tracking parameters Instagram appends to
+ * its QR/share links (igsi, utm_source) — those identify the share that
+ * sent you and don't belong baked into every link on the site.
+ */
+export const INSTAGRAM_HANDLE = "kudmayi.official";
+export const INSTAGRAM_URL = `https://www.instagram.com/${INSTAGRAM_HANDLE}`;
