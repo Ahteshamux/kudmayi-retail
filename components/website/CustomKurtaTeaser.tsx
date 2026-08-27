@@ -1,9 +1,9 @@
-import Image from "next/image";
+import { ResponsiveSlotImage } from "./ResponsiveSlotImage";
 import Link from "next/link";
 import { Reveal } from "./Reveal";
-import type { PlaceholderImage } from "@/lib/website/placeholder-images";
+import type { HomepageImage } from "@/lib/website/homepage-content";
 
-export function CustomKurtaTeaser({ image }: { image: PlaceholderImage }) {
+export function CustomKurtaTeaser({ image }: { image: HomepageImage }) {
   return (
     <section aria-labelledby="custom-kurta-heading" className="bg-sand">
       <div className="u-container grid gap-0 lg:grid-cols-3">
@@ -25,12 +25,10 @@ export function CustomKurtaTeaser({ image }: { image: PlaceholderImage }) {
         </Reveal>
 
         <div className="bg-well relative order-1 aspect-[4/3] lg:order-2 lg:col-span-2 lg:aspect-auto">
-          <Image
-            src={image.src}
-            alt={image.alt}
-            fill
+          <ResponsiveSlotImage
+            image={image}
             sizes="(max-width: 1023px) 100vw, 66vw"
-            className="object-cover"
+            className="absolute inset-0 h-full w-full object-cover"
           />
         </div>
       </div>

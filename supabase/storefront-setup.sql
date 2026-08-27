@@ -155,6 +155,10 @@ create table if not exists public.homepage_images (
   id         uuid        primary key default gen_random_uuid(),
   slot_key   text        not null unique,
   image_url  text        not null,
+  -- Optional art-direction crops, for the few sections whose aspect ratio
+  -- changes between breakpoints. Null means "use image_url".
+  image_url_tablet text,
+  image_url_mobile text,
   alt_text   text        not null default '',
   updated_at timestamptz not null default now()
 );
@@ -177,3 +181,9 @@ create policy "authenticated can update homepage images"
 
 create policy "authenticated can delete homepage images"
   on public.homepage_images for delete to authenticated using (true);
+
+-- Additive — safe to re-run against a database created before per-breakpoint
+-- homepage crops existed.
+alter table public.homepage_images add column if not exists image_url_tablet text;
+alter table public.homepage_images add column if not exists image_url_mobile text;
+

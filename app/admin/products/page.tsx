@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { DeleteProductButton } from "@/components/admin/DeleteProductButton";
-import { ProductsAdminHeader } from "@/components/admin/ProductsAdminHeader";
+import { AdminHeader } from "@/components/admin/AdminHeader";
 import { getDb } from "@/lib/db/client";
 import { SHOP_CATEGORIES, type ShopCategorySlug } from "@/lib/website/categories";
 import { formatPKR } from "@/lib/website/format";
@@ -17,7 +17,7 @@ export default async function ProductsAdminPage() {
   if (!db) {
     return (
       <>
-        <ProductsAdminHeader />
+        <AdminHeader current="/admin/products" />
         <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-14 sm:px-8">
           <SetupNotice />
         </main>
@@ -39,7 +39,7 @@ export default async function ProductsAdminPage() {
 
   return (
     <>
-      <ProductsAdminHeader />
+      <AdminHeader current="/admin/products" />
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-10 sm:px-8">
         <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
           <div>

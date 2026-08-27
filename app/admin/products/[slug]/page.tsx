@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { updateProduct } from "../actions";
 import { ProductForm } from "@/components/admin/ProductForm";
-import { ProductsAdminHeader } from "@/components/admin/ProductsAdminHeader";
+import { AdminHeader } from "@/components/admin/AdminHeader";
 import { getDb } from "@/lib/db/client";
 import type { ShopCategorySlug } from "@/lib/website/categories";
 
@@ -17,7 +17,7 @@ export default async function EditProductPage({
   if (!db) {
     return (
       <>
-        <ProductsAdminHeader />
+        <AdminHeader current="/admin/products" />
         <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-14 sm:px-8">
           <p className="text-rust text-sm">
             The database isn&rsquo;t connected yet — see the setup notes on{" "}
@@ -39,7 +39,7 @@ export default async function EditProductPage({
 
   return (
     <>
-      <ProductsAdminHeader />
+      <AdminHeader current="/admin/products" />
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-10 sm:px-8">
         <Link
           href="/admin/products"

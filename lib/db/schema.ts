@@ -104,7 +104,17 @@ export const homepageImages = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     slotKey: text("slot_key").notNull(),
+    /*
+     * Up to three crops of the same photo. `imageUrl` is the desktop
+     * image and the one everything falls back to; tablet and mobile are
+     * optional art-direction overrides for the handful of sections whose
+     * aspect ratio actually changes between breakpoints (see
+     * lib/website/homepage-slots.ts). Alt text is shared — it's the same
+     * subject in every crop.
+     */
     imageUrl: text("image_url").notNull(),
+    imageUrlTablet: text("image_url_tablet"),
+    imageUrlMobile: text("image_url_mobile"),
     altText: text("alt_text").notNull().default(""),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

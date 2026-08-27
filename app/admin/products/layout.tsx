@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
 
+// robots: noindex is inherited from app/admin/layout.tsx.
 export const metadata: Metadata = {
-  title: "Kudmayi Products",
-  description: "Storefront product management for Kudmayi.",
-  robots: { index: false, follow: false },
+  title: "Products",
 };
 
-export default function ProductsAdminLayout({
-  children,
-}: LayoutProps<"/admin/products">) {
+export default function Layout({ children }: LayoutProps<"/admin/products">) {
   return children;
 }

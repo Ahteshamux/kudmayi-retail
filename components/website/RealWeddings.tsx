@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { ResponsiveSlotImage } from "./ResponsiveSlotImage";
 import { Reveal } from "./Reveal";
 import type { HomepageImages } from "@/lib/website/homepage-content";
 import { REAL_WEDDINGS_IMAGES } from "@/lib/website/placeholder-images";
@@ -47,12 +47,10 @@ function Figure({
 }) {
   return (
     <figure className={`relative overflow-hidden ${className}`}>
-      <Image
-        src={image.src}
-        alt={image.alt}
-        fill
+      <ResponsiveSlotImage
+        image={image}
         sizes="(max-width: 639px) 100vw, 45vw"
-        className="object-cover"
+        className="absolute inset-0 h-full w-full object-cover"
       />
       {image.caption && (
         <figcaption className="bg-black/25 text-parchment u-caps absolute bottom-3 left-3 px-3 py-1.5">

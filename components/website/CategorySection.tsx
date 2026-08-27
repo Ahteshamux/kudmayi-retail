@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { ResponsiveSlotImage } from "./ResponsiveSlotImage";
 import Link from "next/link";
 import { Reveal } from "./Reveal";
 import { SHOP_CATEGORIES, type ShopCategorySlug } from "@/lib/website/categories";
@@ -64,12 +64,10 @@ function CategoryTile({
       href={`/shop/${category.slug}`}
       className={`group relative block overflow-hidden ${className}`}
     >
-      <Image
-        src={image.src}
-        alt={image.alt}
-        fill
+      <ResponsiveSlotImage
+        image={image}
         sizes="(max-width: 767px) 82vw, (max-width: 1023px) 25vw, 20vw"
-        className="object-cover transition-transform duration-700 group-hover:scale-105"
+        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
       />
       <span className="u-caps bg-black/25 text-parchment absolute bottom-4 left-4 px-3 py-1.5">
         {category.label}

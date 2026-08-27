@@ -7,71 +7,73 @@ import { saveHomepageImage } from "@/app/admin/homepage/actions";
 import { compressImage, FULL_BLEED_MAX_EDGE } from "@/lib/image";
 import { createClient } from "@/lib/supabase/client";
 import { STOREFRONT_BUCKET } from "@/lib/website/admin-products-shared";
+import type { TierSpec } from "@/lib/website/homepage-slots";
+
+export type SlotValue = {
+  src: string;
+  alt: string;
+  tablet?: string;
+  mobile?: string;
+};
 
 /**
- * One photo slot: current image, a "Replace" picker, an alt-text field.
- * Saves itself the moment a new photo finishes uploading — with ~27 of
- * these on one admin page, a per-slot "Save" button would mean 27 clicks
- * for a handful of real changes.
+ * One photo slot. Most slots render the same shape at every screen width
+ * and so show a single upload box; the few whose aspect ratio genuinely
+ * changes (hero above all) show one box per screen size, each with its own
+ * recommended dimensions.
+ *
+ * Saves the moment an upload finishes — with ~27 slots on one page, a
+ * per-slot Save button would mean 27 clicks for a handful of real edits.
  */
 export function HomepageImageSlot({
   slotKey,
   label,
-  recommended,
-  shape,
+  tiers,
   note,
-  currentSrc,
-  currentAlt,
+  value,
 }: {
   slotKey: string;
   label: string;
-  recommended: string;
-  shape: string;
+  tiers: TierSpec[];
   note?: string;
-  currentSrc: string;
-  currentAlt: string;
+  value: SlotValue;
 }) {
-  const [src, setSrc] = useState(currentSrc);
-  const [altText, setAltText] = useState(currentAlt);
-  const [uploading, setUploading] = useState(false);
+  const [urls, setUrls] = useState<Record<string, string | undefined>>({
+    desktop: value.src,
+    tablet: value.tablet,
+    mobile: value.mobile,
+  });
+  const [altText, setAltText] = useState(value.alt);
+  const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  function persist(nextSrc: string, nextAlt: string) {
+  function persist(breakpoint: string, nextSrc: string | null, nextAlt: string) {
     startTransition(async () => {
-      const result = await saveHomepageImage(slotKey, nextSrc, nextAlt);
+      const result = await saveHomepageImage(slotKey, breakpoint, nextSrc, nextAlt);
       if (result.error) {
         setError(result.error);
       } else {
+        setError(null);
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
       }
     });
   }
 
-  async function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  async function upload(breakpoint: string, file: File) {
     setError(null);
-    setUploading(true);
-
+    setBusy(breakpoint);
     try {
-      // Homepage photography is full-bleed, so it needs a higher ceiling
-      // than the product-photo default.
-      const blob = await compressImage(file, FULL_BLEED_MAX_EDGE);
-      const localUrl = URL.createObjectURL(blob);
-      setSrc(localUrl);
-
       const supabase = createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Your session expired. Sign in again.");
 
-      const path = `homepage/${slotKey}-${crypto.randomUUID()}.jpg`;
+      const blob = await compressImage(file, FULL_BLEED_MAX_EDGE);
+      const path = `homepage/${slotKey}-${breakpoint}-${crypto.randomUUID()}.jpg`;
       const { error: uploadError } = await supabase.storage
         .from(STOREFRONT_BUCKET)
         .upload(path, blob, { contentType: "image/jpeg" });
@@ -81,66 +83,45 @@ export function HomepageImageSlot({
         data: { publicUrl },
       } = supabase.storage.from(STOREFRONT_BUCKET).getPublicUrl(path);
 
-      setSrc(publicUrl);
-      persist(publicUrl, altText);
+      setUrls((prev) => ({ ...prev, [breakpoint]: publicUrl }));
+      persist(breakpoint, publicUrl, altText);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed. Try again.");
     } finally {
-      setUploading(false);
-      if (inputRef.current) inputRef.current.value = "";
+      setBusy(null);
     }
   }
 
+  function clear(breakpoint: string) {
+    setUrls((prev) => ({ ...prev, [breakpoint]: undefined }));
+    persist(breakpoint, null, altText);
+  }
+
   return (
-    <div className="space-y-2">
-      <div className="bg-well border-line relative aspect-[4/5] overflow-hidden border">
-        {/* Local blob preview mid-upload — next/image can't optimise it. */}
-        {src.startsWith("blob:") ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={src} alt="" className="h-full w-full object-cover" />
-        ) : (
-          <Image src={src} alt="" fill sizes="200px" className="object-cover" />
-        )}
-        {uploading && (
-          <div className="bg-parchment/85 u-caps text-espresso absolute inset-0 flex items-center justify-center text-center text-xs">
-            Uploading…
-          </div>
-        )}
-      </div>
-
-      <p className="u-caps text-muted text-xs">{label}</p>
-
-      {/* Sizing guidance, so nobody has to guess what to export. */}
-      <p className="text-muted text-xs leading-relaxed">
-        <span className="text-espresso font-medium">{recommended} px</span> or larger
-        <br />
-        {shape}
-      </p>
+    <div className="border-line space-y-4 border p-4">
+      <p className="u-caps text-espresso">{label}</p>
       {note && <p className="text-muted/80 text-xs leading-relaxed">{note}</p>}
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFile}
-        className="hidden"
-        id={`slot-${slotKey}`}
-      />
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        disabled={uploading}
-        className="u-caps text-brass-deep hover:underline"
-      >
-        Replace
-      </button>
+      <div className={tiers.length > 1 ? "grid gap-4 sm:grid-cols-2" : ""}>
+        {tiers.map((tier) => (
+          <TierBox
+            key={tier.breakpoint}
+            tier={tier}
+            src={urls[tier.breakpoint]}
+            fallbackSrc={urls.desktop}
+            busy={busy === tier.breakpoint}
+            onUpload={(file) => upload(tier.breakpoint, file)}
+            onClear={() => clear(tier.breakpoint)}
+          />
+        ))}
+      </div>
 
       <label className="block">
         <span className="text-muted text-xs">Alt text</span>
         <AutoGrowTextarea
           value={altText}
           onChange={setAltText}
-          onBlur={() => persist(src, altText)}
+          onBlur={() => persist("desktop", urls.desktop ?? null, altText)}
           placeholder="Describe the photo"
           className="mt-1 text-xs"
         />
@@ -153,6 +134,92 @@ export function HomepageImageSlot({
           {error}
         </p>
       )}
+    </div>
+  );
+}
+
+function TierBox({
+  tier,
+  src,
+  fallbackSrc,
+  busy,
+  onUpload,
+  onClear,
+}: {
+  tier: TierSpec;
+  src?: string;
+  fallbackSrc?: string;
+  busy: boolean;
+  onUpload: (file: File) => void;
+  onClear: () => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isDesktop = tier.breakpoint === "desktop";
+  const usingFallback = !src && !isDesktop;
+  const shown = src ?? fallbackSrc;
+
+  return (
+    <div className="space-y-2">
+      <p className="u-caps text-muted text-[0.625rem]">{tier.label}</p>
+
+      <div className="bg-well border-line relative aspect-[3/4] overflow-hidden border">
+        {shown && (
+          <Image
+            src={shown}
+            alt=""
+            fill
+            sizes="200px"
+            className={`object-cover ${usingFallback ? "opacity-40" : ""}`}
+          />
+        )}
+        {busy && (
+          <div className="bg-parchment/85 u-caps text-espresso absolute inset-0 flex items-center justify-center text-center text-xs">
+            Uploading…
+          </div>
+        )}
+        {usingFallback && !busy && (
+          <div className="bg-parchment/70 u-caps text-muted absolute inset-0 flex items-center justify-center p-2 text-center text-[0.625rem] leading-relaxed">
+            Using desktop image
+          </div>
+        )}
+      </div>
+
+      <p className="text-muted text-xs leading-relaxed">
+        <span className="text-espresso font-medium">{tier.recommended} px</span>
+        <br />
+        {tier.shape}
+      </p>
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) onUpload(file);
+          e.target.value = "";
+        }}
+        className="hidden"
+      />
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={busy}
+          className="u-caps text-brass-deep hover:underline disabled:opacity-50"
+        >
+          {src ? "Replace" : "Upload"}
+        </button>
+        {src && !isDesktop && (
+          <button
+            type="button"
+            onClick={onClear}
+            className="u-caps text-muted hover:text-rust"
+          >
+            Remove
+          </button>
+        )}
+      </div>
     </div>
   );
 }

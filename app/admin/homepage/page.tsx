@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { HomepageImageSlot } from "@/components/admin/HomepageImageSlot";
-import { ProductsAdminHeader } from "@/components/admin/ProductsAdminHeader";
+import { AdminHeader } from "@/components/admin/AdminHeader";
 import { getDb } from "@/lib/db/client";
 import { getAllHomepageImages } from "@/lib/website/homepage-content";
 import { HOMEPAGE_IMAGE_SLOTS } from "@/lib/website/homepage-slots";
@@ -20,7 +20,7 @@ export default async function HomepageAdminPage() {
 
   return (
     <>
-      <ProductsAdminHeader />
+      <AdminHeader current="/admin/homepage" />
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-10 sm:px-8">
         <div className="mb-4">
           <p className="u-caps text-brass-deep">Homepage</p>
@@ -73,17 +73,20 @@ export default async function HomepageAdminPage() {
               <h2 className="font-display border-line mb-5 border-b pb-3 text-2xl">
                 {section}
               </h2>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {slots.map((slot) => (
                   <HomepageImageSlot
                     key={slot.key}
                     slotKey={slot.key}
                     label={slot.label}
-                    recommended={slot.recommended}
-                    shape={slot.shape}
+                    tiers={slot.tiers}
                     note={slot.note}
-                    currentSrc={images[slot.key]?.src ?? slot.fallback.src}
-                    currentAlt={images[slot.key]?.alt ?? slot.fallback.alt}
+                    value={{
+                      src: images[slot.key]?.src ?? slot.fallback.src,
+                      alt: images[slot.key]?.alt ?? slot.fallback.alt,
+                      tablet: images[slot.key]?.tablet,
+                      mobile: images[slot.key]?.mobile,
+                    }}
                   />
                 ))}
               </div>

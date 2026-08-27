@@ -3,7 +3,17 @@ import { homepageImages } from "@/lib/db/schema";
 import { HOMEPAGE_IMAGE_SLOTS } from "./homepage-slots";
 import type { PlaceholderImage } from "./placeholder-images";
 
-export type HomepageImages = Record<string, PlaceholderImage>;
+/**
+ * A homepage photo, with optional art-direction crops. `src` is the
+ * desktop image and the only one guaranteed present; `tablet` and
+ * `mobile` are set only where someone uploaded a separate crop.
+ */
+export type HomepageImage = PlaceholderImage & {
+  tablet?: string;
+  mobile?: string;
+};
+
+export type HomepageImages = Record<string, HomepageImage>;
 
 /**
  * Every homepage photo, keyed by slot — DB value where one exists, the
@@ -24,7 +34,12 @@ export async function getAllHomepageImages(): Promise<HomepageImages> {
     const rows = await db.select().from(homepageImages);
     for (const row of rows) {
       if (row.slotKey in images) {
-        images[row.slotKey] = { src: row.imageUrl, alt: row.altText || images[row.slotKey].alt };
+        images[row.slotKey] = {
+          src: row.imageUrl,
+          alt: row.altText || images[row.slotKey].alt,
+          tablet: row.imageUrlTablet ?? undefined,
+          mobile: row.imageUrlMobile ?? undefined,
+        };
       }
     }
   } catch (err) {

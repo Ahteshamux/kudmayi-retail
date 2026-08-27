@@ -1,5 +1,5 @@
-import Image from "next/image";
-import type { PlaceholderImage } from "@/lib/website/placeholder-images";
+import { ResponsiveSlotImage } from "./ResponsiveSlotImage";
+import type { HomepageImage } from "@/lib/website/homepage-content";
 
 /**
  * Pure image opening frame — no copy, no scrim, no CTA.
@@ -11,7 +11,7 @@ import type { PlaceholderImage } from "@/lib/website/placeholder-images";
  * this is also where a `<video>` element would go — no video asset exists
  * yet, so this stays a photo for now.
  */
-export function Hero({ image }: { image: PlaceholderImage }) {
+export function Hero({ image }: { image: HomepageImage }) {
   return (
     <section aria-label="Kudmayi" className="relative">
       <h1 className="sr-only">Kudmayi — Crafted for the Occasion</h1>
@@ -23,13 +23,11 @@ export function Hero({ image }: { image: PlaceholderImage }) {
        * here is ~30% taller than the previous pass.
        */}
       <div className="relative aspect-[4/6.5] w-full sm:aspect-[16/13] lg:aspect-[16/9] lg:min-h-[120vh]">
-        <Image
-          src={image.src}
-          alt={image.alt}
-          fill
-          priority
+        <ResponsiveSlotImage
+          image={image}
           sizes="100vw"
-          className="object-cover"
+          priority
+          className="absolute inset-0 h-full w-full object-cover"
         />
       </div>
     </section>
