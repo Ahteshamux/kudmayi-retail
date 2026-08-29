@@ -1,5 +1,7 @@
 "use server";
 
+import { unauthorizedState } from "@/lib/supabase/require-user";
+
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/lib/db/client";
@@ -35,6 +37,9 @@ export async function saveHomepageImage(
   imageUrl: string | null,
   altText: string,
 ): Promise<{ error: string | null }> {
+  const denied = await unauthorizedState();
+  if (denied) return denied;
+
   if (!HOMEPAGE_IMAGE_SLOT_KEYS.has(slotKey)) {
     return { error: "Unknown homepage slot." };
   }

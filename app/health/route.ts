@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/supabase/require-user";
 
 /**
  * Deployment diagnostic. Reports whether the Supabase configuration reached
  * this build and whether it actually works — without revealing the key.
  *
- * Public on purpose: it has to be readable when login is broken. It exposes
- * nothing sensitive (the project URL and publishable key are public by
- * design, and only a prefix of the key is shown). Safe to delete once the
- * deployment is settled.
+ * Readable signed-out on purpose: it has to work when login is broken. But
+ * signed-out callers get only booleans and a verdict — enough to diagnose a
+ * bad deploy, without echoing the project URL and key prefix to anyone who
+ * curls it. The identifying detail is there for a signed-in admin only.
+ *
+ * Safe to delete once the deployment is settled.
  */
 export const dynamic = "force-dynamic";
 
@@ -15,14 +18,19 @@ export async function GET() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
+  const isAdmin = Boolean(await getCurrentUser());
+
   const report: Record<string, unknown> = {
     urlPresent: Boolean(url),
-    urlValue: url || null,
     keyPresent: Boolean(key),
-    keyLength: key.length,
-    keyPrefix: key ? key.slice(0, 18) + "…" : null,
     keyLooksSecret: key.startsWith("sb_secret_") || key.includes("service_role"),
   };
+
+  if (isAdmin) {
+    report.urlValue = url || null;
+    report.keyLength = key.length;
+    report.keyPrefix = key ? key.slice(0, 18) + "…" : null;
+  }
 
   if (!url || !key) {
     report.verdict =
@@ -45,7 +53,9 @@ export async function GET() {
           : `Unexpected response from Supabase: ${res.status}`;
   } catch (err) {
     report.supabaseStatus = null;
-    report.fetchError = err instanceof Error ? err.message : String(err);
+    if (isAdmin) {
+      report.fetchError = err instanceof Error ? err.message : String(err);
+    }
     report.verdict =
       "This server cannot reach Supabase at all — wrong URL, or outbound network blocked.";
   }

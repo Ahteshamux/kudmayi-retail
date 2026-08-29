@@ -105,15 +105,15 @@ export function productJsonLd(product: Product) {
       url,
       priceCurrency: "PKR",
       price,
-      ...(product.salePriceRupees !== null
-        ? {
-            priceValidUntil: new Date(
-              Date.now() + 30 * 24 * 60 * 60 * 1000,
-            )
-              .toISOString()
-              .split("T")[0],
-          }
-        : {}),
+      /*
+       * No priceValidUntil. It used to be emitted for sale items as
+       * "build time + 30 days", which is a date nobody chose: product
+       * pages are statically generated, so it was frozen at build, and on
+       * a build older than a month it advertised a sale that had already
+       * expired. The field is optional, and omitting it is honest where
+       * inventing it is not. Emit a real value here once the schema
+       * carries an actual sale end date.
+       */
       availability: product.readyToShip
         ? "https://schema.org/InStock"
         : "https://schema.org/PreOrder",

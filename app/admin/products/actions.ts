@@ -1,13 +1,23 @@
 "use server";
 
+import { requireUser, unauthorizedState } from "@/lib/supabase/require-user";
+
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDb } from "@/lib/db/client";
 import { storefrontProductImages, storefrontProducts } from "@/lib/db/schema";
 import { createClient } from "@/lib/supabase/server";
-import { STOREFRONT_BUCKET, slugify, type ActionState, type ImageInput } from "@/lib/website/admin-products-shared";
-import { isShopCategorySlug, type ShopCategorySlug } from "@/lib/website/categories";
+import {
+  STOREFRONT_BUCKET,
+  slugify,
+  type ActionState,
+  type ImageInput,
+} from "@/lib/website/admin-products-shared";
+import {
+  isShopCategorySlug,
+  type ShopCategorySlug,
+} from "@/lib/website/categories";
 
 type ParsedProduct = {
   slug: string;
@@ -76,7 +86,8 @@ function parseForm(formData: FormData): ParsedProduct | string {
   const slug = slugify(slugInput || name);
   if (!slug) return "Give the piece a URL slug.";
   if (!isShopCategorySlug(category)) return "Pick a category.";
-  if (!Number.isFinite(priceRupees) || priceRupees < 0) return "Enter a valid price.";
+  if (!Number.isFinite(priceRupees) || priceRupees < 0)
+    return "Enter a valid price.";
   if (salePriceRupees !== null) {
     if (!Number.isFinite(salePriceRupees) || salePriceRupees < 0) {
       return "Enter a valid sale price, or leave it blank.";
@@ -86,7 +97,8 @@ function parseForm(formData: FormData): ParsedProduct | string {
     }
   }
   if (!colorName) return "Add a colour name.";
-  if (!/^#[0-9a-fA-F]{6}$/.test(colorHex)) return "Colour swatch must be a hex value like #171410.";
+  if (!/^#[0-9a-fA-F]{6}$/.test(colorHex))
+    return "Colour swatch must be a hex value like #171410.";
   if (images.length === 0) return "Add at least one photo.";
 
   return {
@@ -94,7 +106,8 @@ function parseForm(formData: FormData): ParsedProduct | string {
     name,
     category,
     priceRupees: Math.round(priceRupees),
-    salePriceRupees: salePriceRupees === null ? null : Math.round(salePriceRupees),
+    salePriceRupees:
+      salePriceRupees === null ? null : Math.round(salePriceRupees),
     readyToShip,
     colorName,
     colorHex,
@@ -132,6 +145,8 @@ export async function createProduct(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  const denied = await unauthorizedState();
+  if (denied) return denied;
   const db = getDb();
   if (!db) return unconfiguredError();
 
@@ -139,33 +154,40 @@ export async function createProduct(
   if (typeof parsed === "string") return { error: parsed };
 
   try {
-    const [row] = await db
-      .insert(storefrontProducts)
-      .values({
-        slug: parsed.slug,
-        name: parsed.name,
-        category: parsed.category,
-        priceRupees: parsed.priceRupees,
-        salePriceRupees: parsed.salePriceRupees,
-        readyToShip: parsed.readyToShip,
-        colorName: parsed.colorName,
-        colorHex: parsed.colorHex,
-        description: parsed.description,
-        sizes: parsed.sizes,
-        tags: parsed.tags,
-        featured: parsed.featured,
-      })
-      .returning();
+    // One transaction: a product row and its images commit together or
+    // not at all. Previously a failed image insert left a published
+    // product with no photos, which renders as a broken <Image src="">.
+    await db.transaction(async (tx) => {
+      const [row] = await tx
+        .insert(storefrontProducts)
+        .values({
+          slug: parsed.slug,
+          name: parsed.name,
+          category: parsed.category,
+          priceRupees: parsed.priceRupees,
+          salePriceRupees: parsed.salePriceRupees,
+          readyToShip: parsed.readyToShip,
+          colorName: parsed.colorName,
+          colorHex: parsed.colorHex,
+          description: parsed.description,
+          sizes: parsed.sizes,
+          tags: parsed.tags,
+          featured: parsed.featured,
+        })
+        .returning();
 
-    await db.insert(storefrontProductImages).values(
-      parsed.images.map((img, i) => ({
-        productId: row.id,
-        storagePath: img.storagePath,
-        publicUrl: img.publicUrl,
-        altText: img.altText || parsed.name,
-        sortOrder: i,
-      })),
-    );
+      if (parsed.images.length > 0) {
+        await tx.insert(storefrontProductImages).values(
+          parsed.images.map((img, i) => ({
+            productId: row.id,
+            storagePath: img.storagePath,
+            publicUrl: img.publicUrl,
+            altText: img.altText || parsed.name,
+            sortOrder: i,
+          })),
+        );
+      }
+    });
   } catch (err) {
     return { error: friendlyDbError(err, parsed.slug) };
   }
@@ -178,6 +200,8 @@ export async function updateProduct(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  const denied = await unauthorizedState();
+  if (denied) return denied;
   const db = getDb();
   if (!db) return unconfiguredError();
 
@@ -197,35 +221,44 @@ export async function updateProduct(
     });
     previousCategory = (existing?.category as ShopCategorySlug) ?? null;
 
-    await db
-      .update(storefrontProducts)
-      .set({
-        slug: parsed.slug,
-        name: parsed.name,
-        category: parsed.category,
-        priceRupees: parsed.priceRupees,
-        salePriceRupees: parsed.salePriceRupees,
-        readyToShip: parsed.readyToShip,
-        colorName: parsed.colorName,
-        colorHex: parsed.colorHex,
-        description: parsed.description,
-        sizes: parsed.sizes,
-        tags: parsed.tags,
-        featured: parsed.featured,
-        updatedAt: new Date(),
-      })
-      .where(eq(storefrontProducts.id, id));
+    // The image swap is delete-then-insert, so without a transaction a
+    // failed insert would leave the product with NO images — destroying
+    // the existing gallery rather than merely failing the edit.
+    await db.transaction(async (tx) => {
+      await tx
+        .update(storefrontProducts)
+        .set({
+          slug: parsed.slug,
+          name: parsed.name,
+          category: parsed.category,
+          priceRupees: parsed.priceRupees,
+          salePriceRupees: parsed.salePriceRupees,
+          readyToShip: parsed.readyToShip,
+          colorName: parsed.colorName,
+          colorHex: parsed.colorHex,
+          description: parsed.description,
+          sizes: parsed.sizes,
+          tags: parsed.tags,
+          featured: parsed.featured,
+          updatedAt: new Date(),
+        })
+        .where(eq(storefrontProducts.id, id));
 
-    await db.delete(storefrontProductImages).where(eq(storefrontProductImages.productId, id));
-    await db.insert(storefrontProductImages).values(
-      parsed.images.map((img, i) => ({
-        productId: id,
-        storagePath: img.storagePath,
-        publicUrl: img.publicUrl,
-        altText: img.altText || parsed.name,
-        sortOrder: i,
-      })),
-    );
+      await tx
+        .delete(storefrontProductImages)
+        .where(eq(storefrontProductImages.productId, id));
+      if (parsed.images.length > 0) {
+        await tx.insert(storefrontProductImages).values(
+          parsed.images.map((img, i) => ({
+            productId: id,
+            storagePath: img.storagePath,
+            publicUrl: img.publicUrl,
+            altText: img.altText || parsed.name,
+            sortOrder: i,
+          })),
+        );
+      }
+    });
   } catch (err) {
     return { error: friendlyDbError(err, parsed.slug) };
   }
@@ -240,6 +273,7 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(formData: FormData): Promise<void> {
+  await requireUser();
   const db = getDb();
   if (!db) return;
 
@@ -263,7 +297,10 @@ export async function deleteProduct(formData: FormData): Promise<void> {
 
 function friendlyDbError(err: unknown, slug: string): string {
   const message = err instanceof Error ? err.message : String(err);
-  if (message.includes("storefront_products_slug_idx") || message.includes("duplicate key")) {
+  if (
+    message.includes("storefront_products_slug_idx") ||
+    message.includes("duplicate key")
+  ) {
     return `The slug "${slug}" is already used by another product — change the name or slug.`;
   }
   return message;

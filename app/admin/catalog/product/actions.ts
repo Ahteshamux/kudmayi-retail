@@ -1,5 +1,7 @@
 "use server";
 
+import { requireUser, unauthorizedState } from "@/lib/supabase/require-user";
+
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isCategorySlug, type CategorySlug } from "@/lib/categories";
@@ -59,6 +61,8 @@ export async function createProduct(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  const denied = await unauthorizedState();
+  if (denied) return denied;
   const parsed = parseForm(formData);
   if (typeof parsed === "string") return { error: parsed };
 
@@ -85,6 +89,8 @@ export async function updateProduct(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  const denied = await unauthorizedState();
+  if (denied) return denied;
   const id = String(formData.get("id") ?? "");
   if (!id) return { error: "Missing product id." };
 
@@ -127,6 +133,7 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(formData: FormData): Promise<void> {
+  await requireUser();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
 

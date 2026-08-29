@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCart } from "./CartContext";
 import { useWishlist } from "./WishlistContext";
 import { WishlistToggleButton } from "./WishlistToggleButton";
 import { formatPKR } from "@/lib/website/format";
@@ -12,7 +11,6 @@ import { formatPKR } from "@/lib/website/format";
  *  server for this page. */
 export function WishlistView() {
   const { items } = useWishlist();
-  const { addItem, open } = useCart();
 
   if (items.length === 0) {
     return (
@@ -56,24 +54,17 @@ export function WishlistView() {
               className="text-espresso bg-parchment/80 hover:bg-parchment absolute top-3 right-3 z-10 rounded-full p-1.5 transition-colors"
             />
 
-            <button
-              type="button"
-              onClick={() => {
-                addItem({
-                  slug: item.slug,
-                  name: item.name,
-                  image: item.image,
-                  category: item.category,
-                  unitPriceRupees: price,
-                  colorName: item.colorName,
-                  size: null,
-                });
-                open();
-              }}
-              className="u-caps text-brass-deep mt-2 text-[0.6875rem] hover:underline"
+            {/* Deliberately a link to the product page, not a direct
+                add-to-cart. The card has no size selection, so adding from
+                here used to put a sizeless line in the cart — and checkout
+                is a WhatsApp message, so that order would arrive with no
+                size on it. ProductActions enforces the choice. */}
+            <Link
+              href={`/product/${item.slug}`}
+              className="u-caps text-brass-deep mt-2 inline-block text-[0.6875rem] hover:underline"
             >
-              Add to Cart
-            </button>
+              Select Size
+            </Link>
           </div>
         );
       })}

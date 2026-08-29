@@ -29,6 +29,9 @@ export type Product = {
   /** Freeform merchandising labels — "New Arrival", "Bestseller" — shown
    *  as badges, separate from the Ready to Ship badge. */
   tags: string[];
+  /** Admin's "Featured (Groom Edit)" toggle — drives the homepage rail.
+   *  See lib/website/featured-products.ts. */
+  featured: boolean;
   image: PlaceholderImage;
   hoverImage: PlaceholderImage;
 };
@@ -40,7 +43,7 @@ export type Product = {
  * unreachable. The public site never 500s over this; see getDb()'s doc
  * comment for the reasoning.
  */
-const RAW: Omit<Product, "hoverImage" | "description" | "sizes" | "salePriceRupees" | "tags">[] = [
+const RAW: Omit<Product, "hoverImage" | "description" | "sizes" | "salePriceRupees" | "tags" | "featured">[] = [
   // Sherwanis
   { slug: "ivory-embroidered-sherwani", name: "Ivory Embroidered Sherwani", category: "sherwanis", priceRupees: 145000, readyToShip: true, colorName: "Ivory", colorHex: "#f3ecdf", image: { src: unsplash("1759906766080-82b785c61f51", 900), alt: "Groom in traditional Indian wedding sherwani" } },
   { slug: "pearl-zardozi-sherwani", name: "Pearl Zardozi Sherwani", category: "sherwanis", priceRupees: 152000, readyToShip: false, colorName: "Pearl", colorHex: "#ede6d6", image: { src: unsplash("1729347917808-e3e35a462fec", 900), alt: "Man in a white embroidered sherwani" } },
@@ -96,6 +99,16 @@ const RAW: Omit<Product, "hoverImage" | "description" | "sizes" | "salePriceRupe
  * in the same category, wrapping around. Real product photography will
  * have its own dedicated angles; this just avoids every card reusing its
  * own cover shot as its own hover state. */
+/** Which placeholder pieces stand in for the Groom Edit rail in dev. */
+const PLACEHOLDER_FEATURED_SLUGS = new Set([
+  "ivory-embroidered-sherwani",
+  "black-velvet-prince-coat",
+  "cream-silk-kurta",
+  "charcoal-bandhgala",
+  "deep-brown-waistcoat",
+  "slate-grey-three-piece-suit",
+]);
+
 export const PLACEHOLDER_PRODUCTS: Product[] = RAW.map((product) => {
   const sameCategory = RAW.filter((p) => p.category === product.category);
   const idx = sameCategory.findIndex((p) => p.slug === product.slug);
@@ -106,6 +119,7 @@ export const PLACEHOLDER_PRODUCTS: Product[] = RAW.map((product) => {
     sizes: [],
     salePriceRupees: null,
     tags: [],
+    featured: PLACEHOLDER_FEATURED_SLUGS.has(product.slug),
     hoverImage: next.image,
   };
 });
@@ -113,6 +127,24 @@ export const PLACEHOLDER_PRODUCTS: Product[] = RAW.map((product) => {
 // effectivePriceRupees moved to lib/website/pricing.ts — Client Components
 // need it, and importing anything runtime from this file pulls in
 // lib/db/client.ts's `postgres` package (Node-only) and fails to build.
+
+/**
+ * Placeholder data is a DEVELOPMENT convenience, never a production
+ * fallback.
+ *
+ * These are invented garments with invented prices and hotlinked Unsplash
+ * photos. Serving them to real shoppers because the database happens to be
+ * unreachable would publish a fake catalogue at fake prices — customers
+ * could add them to a cart and send a WhatsApp order for a piece that
+ * doesn't exist. An empty category is recoverable; a fabricated price is
+ * not. So in production a database failure yields nothing, and the page
+ * renders its real empty state.
+ */
+const ALLOW_PLACEHOLDERS = process.env.NODE_ENV !== "production";
+
+function placeholderCatalog(): Product[] {
+  return ALLOW_PLACEHOLDERS ? PLACEHOLDER_PRODUCTS : [];
+}
 
 function rowToProduct(
   row: StorefrontProductRow,
@@ -133,6 +165,7 @@ function rowToProduct(
     description: row.description,
     sizes: row.sizes,
     tags: row.tags,
+    featured: row.featured,
     image: { src: cover?.publicUrl ?? "", alt: cover?.altText || row.name },
     hoverImage: { src: hover?.publicUrl ?? "", alt: hover?.altText || row.name },
   };
@@ -154,7 +187,7 @@ function logDbFallback(context: string, err: unknown) {
  */
 export async function listAllProducts(): Promise<Product[]> {
   const db = getDb();
-  if (!db) return PLACEHOLDER_PRODUCTS;
+  if (!db) return placeholderCatalog();
 
   try {
     const rows = await db.query.storefrontProducts.findMany({
@@ -162,11 +195,11 @@ export async function listAllProducts(): Promise<Product[]> {
       with: { images: { orderBy: (i, { asc }) => [asc(i.sortOrder)] } },
       orderBy: [desc(storefrontProducts.createdAt)],
     });
-    if (rows.length === 0) return PLACEHOLDER_PRODUCTS;
+    if (rows.length === 0) return placeholderCatalog();
     return rows.map((r) => rowToProduct(r, r.images));
   } catch (err) {
     logDbFallback("listAllProducts", err);
-    return PLACEHOLDER_PRODUCTS;
+    return placeholderCatalog();
   }
 }
 
@@ -174,7 +207,7 @@ export async function getProductsByCategory(
   category: ShopCategorySlug,
 ): Promise<Product[]> {
   const db = getDb();
-  if (!db) return PLACEHOLDER_PRODUCTS.filter((p) => p.category === category);
+  if (!db) return placeholderCatalog().filter((p) => p.category === category);
 
   try {
     const rows = await db.query.storefrontProducts.findMany({
@@ -186,28 +219,35 @@ export async function getProductsByCategory(
       orderBy: [desc(storefrontProducts.createdAt)],
     });
     if (rows.length === 0) {
-      return PLACEHOLDER_PRODUCTS.filter((p) => p.category === category);
+      return placeholderCatalog().filter((p) => p.category === category);
     }
     return rows.map((r) => rowToProduct(r, r.images));
   } catch (err) {
     logDbFallback("getProductsByCategory", err);
-    return PLACEHOLDER_PRODUCTS.filter((p) => p.category === category);
+    return placeholderCatalog().filter((p) => p.category === category);
   }
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | undefined> {
   const db = getDb();
-  if (!db) return PLACEHOLDER_PRODUCTS.find((p) => p.slug === slug);
+  if (!db) return placeholderCatalog().find((p) => p.slug === slug);
 
   try {
     const row = await db.query.storefrontProducts.findFirst({
-      where: eq(storefrontProducts.slug, slug),
+      // `published` is part of the lookup, not a post-filter: without it
+      // an unpublished draft stays fully readable to anyone who knows or
+      // guesses its slug, even though it's absent from listings and the
+      // sitemap.
+      where: and(
+        eq(storefrontProducts.slug, slug),
+        eq(storefrontProducts.published, true),
+      ),
       with: { images: { orderBy: (i, { asc }) => [asc(i.sortOrder)] } },
     });
-    if (!row) return PLACEHOLDER_PRODUCTS.find((p) => p.slug === slug);
+    if (!row) return placeholderCatalog().find((p) => p.slug === slug);
     return rowToProduct(row, row.images);
   } catch (err) {
     logDbFallback("getProductBySlug", err);
-    return PLACEHOLDER_PRODUCTS.find((p) => p.slug === slug);
+    return placeholderCatalog().find((p) => p.slug === slug);
   }
 }

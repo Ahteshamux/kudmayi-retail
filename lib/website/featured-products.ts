@@ -1,24 +1,24 @@
 import { listAllProducts, type Product } from "./products";
 
-/**
- * "The Groom Edit" — a curated slice of the main catalog, not a separate
- * dataset. Once real products exist in the database, swap this fixed slug
- * list for a real `featured` flag/query (the schema already has a
- * `featured` column ready for that — see lib/db/schema.ts).
- */
-const GROOM_EDIT_SLUGS = [
-  "ivory-embroidered-sherwani",
-  "black-velvet-prince-coat",
-  "cream-silk-kurta",
-  "charcoal-bandhgala",
-  "deep-brown-waistcoat",
-  "slate-grey-three-piece-suit",
-];
+/** How many pieces the homepage rail shows. */
+const GROOM_EDIT_LIMIT = 6;
 
+/**
+ * "The Groom Edit" — driven by the admin's "Featured (Groom Edit)" toggle
+ * (`featured` on storefront_products), not a hardcoded slug list.
+ *
+ * It used to be a fixed list of six *placeholder* slugs. That had two
+ * faults: the admin toggle was saved but silently ignored, and — worse —
+ * once real products replaced the placeholders none of those slugs would
+ * resolve, so the homepage's featured rail would quietly render empty.
+ *
+ * Falling back to the newest pieces when nothing is flagged keeps the rail
+ * populated on a fresh catalogue, so the homepage never ships a blank
+ * section while the shop is still being set up.
+ */
 export async function getFeaturedProducts(): Promise<Product[]> {
   const all = await listAllProducts();
-  const bySlug = new Map(all.map((p) => [p.slug, p]));
-  return GROOM_EDIT_SLUGS.map((slug) => bySlug.get(slug)).filter(
-    (p): p is Product => p !== undefined,
-  );
+  const flagged = all.filter((p) => p.featured);
+  const chosen = flagged.length > 0 ? flagged : all;
+  return chosen.slice(0, GROOM_EDIT_LIMIT);
 }
