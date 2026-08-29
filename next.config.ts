@@ -7,6 +7,10 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
   : undefined;
 
 const nextConfig: NextConfig = {
+  // Don't advertise the framework. It's free reconnaissance for anyone
+  // scanning for version-specific exploits, and it buys nothing.
+  poweredByHeader: false,
+
   async headers() {
     return [
       {

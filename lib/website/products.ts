@@ -172,8 +172,15 @@ function rowToProduct(
 }
 
 function logDbFallback(context: string, err: unknown) {
+  // The message has to match what actually happens, which differs by
+  // environment: production serves nothing rather than inventing a
+  // catalogue (see ALLOW_PLACEHOLDERS). Claiming "serving the placeholder
+  // catalog" in production would send someone hunting for placeholder data
+  // that was never rendered.
   console.error(
-    `[products] ${context} — database query failed, serving the placeholder catalog instead:`,
+    ALLOW_PLACEHOLDERS
+      ? `[products] ${context} — database query failed; serving the placeholder catalog (development only):`
+      : `[products] ${context} — database query failed; serving an EMPTY catalogue. The storefront is showing no products:`,
     err,
   );
 }

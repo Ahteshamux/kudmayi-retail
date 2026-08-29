@@ -6,6 +6,7 @@ import { useWishlist } from "./WishlistContext";
 import { SHOP_CATEGORIES } from "@/lib/website/categories";
 import { SECONDARY_MOBILE_LINKS } from "@/lib/website/nav";
 import { whatsAppLink } from "@/lib/website/whatsapp";
+import { useFocusTrap } from "./useFocusTrap";
 
 /**
  * MENU trigger + full-screen drawer, mobile only — where most of this
@@ -22,6 +23,7 @@ import { whatsAppLink } from "@/lib/website/whatsapp";
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const { count } = useWishlist();
+  const trapRef = useFocusTrap<HTMLDivElement>(open);
 
   useEffect(() => {
     if (!open) return;
@@ -57,6 +59,8 @@ export function MobileNav() {
           role="dialog"
           aria-modal="true"
           aria-label="Site navigation"
+          ref={trapRef}
+          tabIndex={-1}
           className="bg-parchment u-panel-in fixed inset-0 z-50 flex flex-col"
         >
           <div className="border-line flex shrink-0 items-center justify-between border-b px-5 py-4">

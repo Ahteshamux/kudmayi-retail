@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { useCart, type CartItem } from "./CartContext";
 import { formatPKR } from "@/lib/website/format";
+import { useFocusTrap } from "./useFocusTrap";
 import { whatsAppLink } from "@/lib/website/whatsapp";
 
 function orderMessage(items: CartItem[], subtotalRupees: number): string {
@@ -30,6 +31,7 @@ function orderMessage(items: CartItem[], subtotalRupees: number): string {
  */
 export function CartDrawer() {
   const { items, isOpen, close, removeItem, updateQty, subtotalRupees } = useCart();
+  const trapRef = useFocusTrap<HTMLDivElement>(isOpen);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -55,7 +57,11 @@ export function CartDrawer() {
         className="absolute inset-0 bg-espresso/40"
       />
 
-      <div className="bg-parchment relative flex h-full w-full max-w-md flex-col shadow-[-8px_0_24px_rgba(23,20,16,0.15)]">
+      <div
+        ref={trapRef}
+        tabIndex={-1}
+        className="bg-parchment relative flex h-full w-full max-w-md flex-col shadow-[-8px_0_24px_rgba(23,20,16,0.15)]"
+      >
         <div className="border-line flex items-center justify-between border-b px-5 py-4">
           <h2 className="font-display text-xl">Your Cart</h2>
           <button type="button" onClick={close} aria-label="Close cart" className="u-caps">

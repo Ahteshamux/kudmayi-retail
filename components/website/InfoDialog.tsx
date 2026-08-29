@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
+import { useFocusTrap } from "./useFocusTrap";
 
 /**
  * Generic trigger + modal, reused wherever the site needs a small piece of
@@ -22,6 +23,7 @@ export function InfoDialog({
 }) {
   const [open, setOpen] = useState(false);
   const titleId = useId();
+  const trapRef = useFocusTrap<HTMLDivElement>(open);
 
   useEffect(() => {
     if (!open) return;
@@ -50,7 +52,11 @@ export function InfoDialog({
             aria-label="Close"
             className="absolute inset-0 bg-espresso/40"
           />
-          <div className="bg-parchment relative max-h-[85vh] w-full max-w-lg overflow-y-auto p-6 shadow-[0_8px_32px_rgba(23,20,16,0.2)] sm:p-8">
+          <div
+            ref={trapRef}
+            tabIndex={-1}
+            className="bg-parchment relative max-h-[85vh] w-full max-w-lg overflow-y-auto p-6 shadow-[0_8px_32px_rgba(23,20,16,0.2)] sm:p-8"
+          >
             <div className="flex items-center justify-between gap-4">
               <h2 id={titleId} className="font-display text-2xl">
                 {title}
