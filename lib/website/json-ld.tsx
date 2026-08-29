@@ -31,7 +31,7 @@ export function organizationJsonLd() {
     "@type": "Organization",
     name: "Kudmayi",
     url: SITE_URL,
-    logo: `${SITE_URL}/icon.svg`,
+    logo: `${SITE_URL}/icons/logo-512.png`,
     description:
       "Kudmayi — Pakistani menswear and weddingwear house. Sherwanis, prince coats, waistcoats, kurtas, and bespoke tailoring, crafted for the occasion.",
     contactPoint: {
