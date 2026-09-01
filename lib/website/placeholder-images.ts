@@ -99,13 +99,20 @@ export const COLLECTIONS_STRIP_IMAGES: Record<
   },
 };
 
+/*
+ * No captions here. These are stock photographs, and the two that used to
+ * carry them named couples, cities and years that were invented — stock
+ * strangers presented as Kudmayi customers on their wedding day. The
+ * caption field stays because real weddings will earn real captions; it is
+ * only ever filled in with a couple who actually wore the clothes and
+ * agreed to appear.
+ */
 export const REAL_WEDDINGS_IMAGES: (PlaceholderImage & {
   caption?: string;
 })[] = [
   {
     src: unsplash("1679937698873-6065742c8d32", 1600),
     alt: "Bride and groom getting ready for their wedding ceremony",
-    caption: "Ahmed & Sana — Lahore, 2025",
   },
   {
     src: unsplash("1741201864879-c5e7f81c98b0", 1200),
@@ -114,7 +121,6 @@ export const REAL_WEDDINGS_IMAGES: (PlaceholderImage & {
   {
     src: unsplash("1754782915524-714d8534a5df", 1200),
     alt: "Groom sharing a moment with the bride during the ceremony",
-    caption: "Bilal & Areeba — Karachi, 2025",
   },
   {
     src: unsplash("1725658784875-9973c1b7adbe", 1200),
