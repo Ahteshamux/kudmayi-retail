@@ -37,3 +37,12 @@ export const CONTACT_EMAIL = "hello@kudmayi.pk";
  */
 export const INSTAGRAM_HANDLE = "kudmayi.official";
 export const INSTAGRAM_URL = `https://www.instagram.com/${INSTAGRAM_HANDLE}`;
+
+/*
+ * The Google Business Profile, in ?cid= form. The URL Maps puts in the
+ * address bar carries session parameters (entry, g_ep) that mean nothing to
+ * anyone else; this is the stable identifier for the same listing. Used in
+ * the Organization schema's sameAs so Google can tie the site to the
+ * verified profile.
+ */
+export const GOOGLE_MAPS_URL = "https://maps.google.com/?cid=4133325592228760609";

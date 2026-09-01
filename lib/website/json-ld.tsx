@@ -1,6 +1,7 @@
 import type { Product } from "@/lib/website/products";
 import type { ShopCategorySlug } from "@/lib/website/categories";
-import { CONTACT_EMAIL, INSTAGRAM_URL, SITE_URL } from "@/lib/website/constants";
+import { CONTACT_EMAIL, INSTAGRAM_URL, SITE_URL,
+  GOOGLE_MAPS_URL,} from "@/lib/website/constants";
 import { shopCategoryLabel } from "@/lib/website/categories";
 import { PHONE_HREF } from "@/lib/website/whatsapp";
 
@@ -42,7 +43,7 @@ export function organizationJsonLd() {
       email: CONTACT_EMAIL,
       availableLanguage: ["English", "Urdu"],
     },
-    sameAs: [INSTAGRAM_URL],
+    sameAs: [INSTAGRAM_URL, GOOGLE_MAPS_URL],
   };
 }
 
@@ -91,7 +92,12 @@ export function productJsonLd(product: Product) {
     "@type": "Product",
     name: product.name,
     url,
-    image: [product.image.src, product.hoverImage.src],
+    /*
+     * Deduplicated: a product with a single photo has image and hoverImage
+     * pointing at the same file, and listing one URL twice tells Google the
+     * product has two images when it has one.
+     */
+    image: [...new Set([product.image.src, product.hoverImage.src])],
     description:
       product.description ??
       `${product.name} — ${shopCategoryLabel(product.category).toLowerCase()} from Kudmayi. Hand-finished Pakistani menswear crafted for the occasion.`,
