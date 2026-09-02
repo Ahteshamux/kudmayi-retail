@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AutoGrowTextarea } from "./AutoGrowTextarea";
 import { compressImage } from "@/lib/image";
 import { createClient } from "@/lib/supabase/client";
@@ -22,8 +22,11 @@ type GalleryImage = ImageInput & { key: string };
  */
 export function ProductImagesUploader({
   initialImages,
+  onPhotosChange,
 }: {
   initialImages: ImageInput[];
+  /** Lets the colour eyedropper sample whatever is currently uploaded. */
+  onPhotosChange?: (urls: string[]) => void;
 }) {
   const [images, setImages] = useState<GalleryImage[]>(() =>
     initialImages.map((img) => ({ ...img, key: crypto.randomUUID() })),
@@ -32,6 +35,14 @@ export function ProductImagesUploader({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  /*
+   * Reported from an effect rather than from each of the four setImages
+   * call sites — one place to keep in step instead of four to forget.
+   */
+  useEffect(() => {
+    onPhotosChange?.(images.map((img) => img.publicUrl));
+  }, [images, onPhotosChange]);
 
   async function handleFiles(event: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);

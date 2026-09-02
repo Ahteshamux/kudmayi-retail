@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useCallback, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { ColorFromPhoto } from "./ColorFromPhoto";
 import { ProductImagesUploader } from "./ProductImagesUploader";
 import { slugify, type ActionState, type ImageInput } from "@/lib/website/admin-products-shared";
 import { SITE_HOST } from "@/lib/website/constants";
@@ -49,6 +50,18 @@ export function ProductForm({
   const [name, setName] = useState(product?.name ?? prefill?.name ?? "");
   const [slug, setSlug] = useState(product?.slug ?? (prefill?.name ? slugify(prefill.name) : ""));
   const [slugTouched, setSlugTouched] = useState(Boolean(product));
+
+  /*
+   * The colour swatch is a controlled input so the eyedropper can write to
+   * it. useCallback keeps the identity stable — the uploader reports its
+   * photos from an effect keyed on this, and a fresh function each render
+   * would loop.
+   */
+  const [colorHex, setColorHex] = useState(product?.colorHex ?? "#171410");
+  const [photos, setPhotos] = useState<string[]>(
+    (product?.images ?? prefill?.images ?? []).map((img) => img.publicUrl),
+  );
+  const handlePhotosChange = useCallback((urls: string[]) => setPhotos(urls), []);
 
   return (
     <form action={formAction} className="max-w-2xl space-y-7">
@@ -178,10 +191,14 @@ export function ProductForm({
               id="colorHex"
               name="colorHex"
               type="color"
-              defaultValue={product?.colorHex ?? "#171410"}
+              value={colorHex}
+              onChange={(e) => setColorHex(e.target.value)}
               className="border-line h-11 w-14 shrink-0 border p-1"
             />
+            <span className="text-muted font-mono text-xs">{colorHex}</span>
           </div>
+
+          <ColorFromPhoto photos={photos} onPick={setColorHex} />
         </div>
       </div>
 
@@ -229,7 +246,10 @@ export function ProductForm({
         />
       </div>
 
-      <ProductImagesUploader initialImages={product?.images ?? prefill?.images ?? []} />
+      <ProductImagesUploader
+        initialImages={product?.images ?? prefill?.images ?? []}
+        onPhotosChange={handlePhotosChange}
+      />
 
       <div className="flex flex-wrap gap-6">
         <label className="inline-flex items-center gap-2.5">
