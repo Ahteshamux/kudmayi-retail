@@ -21,19 +21,27 @@ export function PrinceCoatSection({ image }: { image: PlaceholderImage }) {
         />
       </div>
 
-      <Reveal className="u-container mt-10 max-w-lg lg:mt-14">
-        <p className="u-caps text-brass-deep">Tailoring</p>
-        <h2 id="prince-coat-heading" className="font-display mt-4 text-3xl sm:text-4xl">
-          The Prince Coat.
-        </h2>
-        <p className="text-muted mt-5">
-          Structured, sharp, unmistakably formal — for the moments that call
-          for restraint.
-        </p>
-        <Link href="#shop-by-category" className="u-btn u-caps mt-8 inline-flex">
-          Explore Prince Coats
-        </Link>
-      </Reveal>
+      {/*
+        * u-container and the measure have to live on separate elements.
+        * Together on one, max-w-lg overrode the container's 90rem and its
+        * margin-inline:auto then centred the copy as a 32rem column adrift
+        * in the middle of the page.
+        */}
+      <div className="u-container mt-10 lg:mt-14">
+        <Reveal className="max-w-lg">
+          <p className="u-caps text-brass-deep">Tailoring</p>
+          <h2 id="prince-coat-heading" className="font-display mt-4 text-3xl sm:text-4xl">
+            The Prince Coat.
+          </h2>
+          <p className="text-muted mt-5">
+            Structured, sharp, unmistakably formal — for the moments that
+            call for restraint.
+          </p>
+          <Link href="#shop-by-category" className="u-btn u-caps mt-8 inline-flex">
+            Explore Prince Coats
+          </Link>
+        </Reveal>
+      </div>
     </section>
   );
 }

@@ -24,7 +24,13 @@ export function CustomKurtaTeaser({ image }: { image: HomepageImage }) {
           </Link>
         </Reveal>
 
-        <div className="bg-well relative order-1 aspect-[4/3] lg:order-2 lg:col-span-2 lg:aspect-auto">
+        {/*
+          * The min-height matters on lg. aspect-auto leaves this column with
+          * no intrinsic height — the image inside is absolutely positioned —
+          * so the row collapsed to the height of the copy beside it and the
+          * whole panel came out 211px tall.
+          */}
+        <div className="bg-well relative order-1 aspect-[4/3] lg:order-2 lg:col-span-2 lg:aspect-auto lg:min-h-[32rem]">
           <ResponsiveSlotImage
             image={image}
             sizes="(max-width: 1023px) 100vw, 66vw"
