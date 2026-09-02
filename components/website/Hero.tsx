@@ -32,7 +32,15 @@ export function Hero({ image }: { image: HomepageImage }) {
           image={image}
           sizes="100vw"
           priority
-          className="absolute inset-0 h-full w-full object-cover"
+          /*
+           * Cropped toward the top from lg up, where the frame is wider
+           * than the photograph and object-cover has ~400px of height to
+           * discard. Centred, it took 200px off the top and the fixed
+           * header covered 130px more, cutting through the groom's turban.
+           * Below lg the frame and the photo are nearly the same ratio, so
+           * there is no vertical crop to steer.
+           */
+          className="absolute inset-0 h-full w-full object-cover lg:object-[50%_10%]"
         />
       </div>
     </section>
