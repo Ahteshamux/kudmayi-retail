@@ -26,7 +26,17 @@ export function ResponsiveSlotImage({
   className?: string;
   priority?: boolean;
 }) {
-  const common = { alt: image.alt, sizes, fill: true, priority } as const;
+  /*
+   * quality: 90, not the framework default of 75. These images render at
+   * up to 100vw on the largest, most scrutinised frame on the site — the
+   * hero above all — after already passing through one lossy JPEG encode
+   * on upload (see compressImage in lib/image.ts). Re-encoding that
+   * already-compressed source a second time at 75 compounds the loss
+   * visibly; 90 stops adding a second round of it. Declared in
+   * next.config.ts's images.qualities, which Next requires for any value
+   * beyond the default.
+   */
+  const common = { alt: image.alt, sizes, fill: true, priority, quality: 90 } as const;
 
   const desktop = getImageProps({ ...common, src: image.src });
   const tablet = image.tablet ? getImageProps({ ...common, src: image.tablet }) : null;

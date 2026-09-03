@@ -27,7 +27,8 @@ export function SignatureSherwani({ image }: { image: PlaceholderImage }) {
           </Link>
         </Reveal>
 
-        <div className="bg-well relative order-1 aspect-[3/4] overflow-hidden lg:order-2">
+        {/* aspect-[3/4] reduced to aspect-[3/2.8] — 30% shorter, requested explicitly. */}
+        <div className="bg-well relative order-1 aspect-[3/2.8] overflow-hidden lg:order-2">
           <Image
             src={image.src}
             alt={image.alt}

@@ -50,6 +50,14 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    /*
+     * Next.js only serves the quality values listed here — anything else
+     * throws at request time. Homepage full-bleed photography (hero,
+     * editorial bands) asks for 90 explicitly in ResponsiveSlotImage.tsx;
+     * 75 stays the default for everything else (product photos), which
+     * render far smaller and don't need it.
+     */
+    qualities: [75, 90],
     remotePatterns: [
       ...(supabaseHost
         ? [

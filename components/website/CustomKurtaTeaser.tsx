@@ -3,6 +3,16 @@ import Link from "next/link";
 import { Reveal } from "./Reveal";
 import type { HomepageImage } from "@/lib/website/homepage-content";
 
+/*
+ * Currently unused (see app/(website)/page.tsx) — pulled from the homepage
+ * for now. Before it comes back: this is the one section on the page that
+ * doesn't use `u-section` for its vertical rhythm — it relies on its own
+ * px-5 py-14 padding instead, which is what made the gap around it read as
+ * "different" from every other section. Switch the outer <section> to
+ * `u-section` (matching CategorySection, SignatureSherwani, etc.) and drop
+ * the ad-hoc py-14/lg:py-0 before re-adding it, so its spacing actually
+ * matches its neighbours instead of only visually approximating them.
+ */
 export function CustomKurtaTeaser({ image }: { image: HomepageImage }) {
   return (
     <section aria-labelledby="custom-kurta-heading" className="bg-sand">
@@ -29,8 +39,11 @@ export function CustomKurtaTeaser({ image }: { image: HomepageImage }) {
           * no intrinsic height — the image inside is absolutely positioned —
           * so the row collapsed to the height of the copy beside it and the
           * whole panel came out 211px tall.
+          *
+          * Both figures are 25% taller than that baseline (aspect-[4/3] and
+          * min-h-[32rem]), requested explicitly: 3 → 3.75, 32rem → 40rem.
           */}
-        <div className="bg-well relative order-1 aspect-[4/3] lg:order-2 lg:col-span-2 lg:aspect-auto lg:min-h-[32rem]">
+        <div className="bg-well relative order-1 aspect-[4/3.75] lg:order-2 lg:col-span-2 lg:aspect-auto lg:min-h-[40rem]">
           <ResponsiveSlotImage
             image={image}
             sizes="(max-width: 1023px) 100vw, 66vw"

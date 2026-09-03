@@ -191,10 +191,19 @@
     }
   }
 
-  /* Large, responsive vertical rhythm between homepage sections — the
-     whitespace the spec keeps insisting on. */
+  /*
+   * Vertical rhythm between homepage sections, used identically everywhere
+   * (every section shares this one rule, so every gap stays the same size
+   * as every other by construction). Two adjacent sections each contribute
+   * one side of this, so the visible gap between them is double the figure
+   * below — at desktop widths that was 144px+144px = 288px, which read as
+   * a dead zone between image-heavy sections; cut by a third here (now
+   * 96px+96px = 192px) rather than only shrinking the one pair that
+   * happened to get noticed, which would have broken the "same everywhere"
+   * property this rule exists for.
+   */
   .u-section {
-    padding-block: clamp(4rem, 8vw, 9rem);
+    padding-block: clamp(3rem, 6vw, 6rem);
   }
 
   /*

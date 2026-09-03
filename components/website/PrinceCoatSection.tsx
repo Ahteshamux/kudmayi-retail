@@ -16,7 +16,8 @@ export function PrinceCoatSection({ image }: { image: PlaceholderImage }) {
   return (
     <section aria-labelledby="prince-coat-heading" className="u-section">
       <div className="u-container grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-16">
-        <div className="bg-well relative order-1 aspect-[3/4] overflow-hidden lg:order-1">
+        {/* aspect-[3/4] reduced to aspect-[3/2.8] — 30% shorter, requested explicitly. */}
+        <div className="bg-well relative order-1 aspect-[3/2.8] overflow-hidden lg:order-1">
           <Image
             src={image.src}
             alt={image.alt}

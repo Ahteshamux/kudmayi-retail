@@ -1,14 +1,11 @@
 import { BespokeTeaser } from "@/components/website/BespokeTeaser";
 import { BrandStory } from "@/components/website/BrandStory";
 import { CategorySection } from "@/components/website/CategorySection";
-import { CollectionsStrip } from "@/components/website/CollectionsStrip";
-import { CustomKurtaTeaser } from "@/components/website/CustomKurtaTeaser";
 import { EditorialCampaign } from "@/components/website/EditorialCampaign";
 import { FeaturedCollection } from "@/components/website/FeaturedCollection";
 import { Hero } from "@/components/website/Hero";
 import { InstagramGrid } from "@/components/website/InstagramGrid";
 import { PrinceCoatSection } from "@/components/website/PrinceCoatSection";
-import { RealWeddings } from "@/components/website/RealWeddings";
 import { SignatureSherwani } from "@/components/website/SignatureSherwani";
 import { SITE_URL } from "@/lib/website/constants";
 import { getAllHomepageImages } from "@/lib/website/homepage-content";
@@ -37,11 +34,13 @@ export default async function HomePage() {
       <EditorialCampaign image={images.editorial_campaign} />
       <SignatureSherwani image={images.signature_sherwani} />
       <PrinceCoatSection image={images.prince_coat_section} />
-      <CustomKurtaTeaser image={images.custom_kurta} />
       <BespokeTeaser />
       <BrandStory image={images.brand_story} />
-      <CollectionsStrip images={images} />
-      <RealWeddings images={images} />
+      {/* CustomKurtaTeaser ("Made Around You"), CollectionsStrip ("Explore"),
+       * and RealWeddings removed from the homepage for now, per request —
+       * components and their homepage-image slots are untouched, so all
+       * three drop back in with one line each whenever they're wanted
+       * again. */}
       <InstagramGrid images={images} />
     </>
   );

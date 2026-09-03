@@ -6,11 +6,15 @@ const MAX_EDGE = 1600;
 
 /**
  * Full-bleed homepage photography (hero, editorial bands, category tiles)
- * spans 100vw, so the default cap leaves it visibly soft on a large or
- * high-DPI display. 2560 covers a 2560px monitor at 1x and a 1440px
- * laptop at 2x without pushing file sizes to 4K territory.
+ * spans 100vw. Matches next/image's largest built-in device bucket
+ * (3840, Next's default deviceSizes) rather than an arbitrary smaller
+ * number: with sizes="100vw", a high-DPI or 4K screen asks the optimizer
+ * for that 3840w candidate, and Next can down-scale a source but never
+ * up-scale one — a source capped below 3840 gets served at its own width
+ * and stretched by the browser the rest of the way, which is what "a
+ * little pixelated" on a real monitor turned out to be.
  */
-export const FULL_BLEED_MAX_EDGE = 2560;
+export const FULL_BLEED_MAX_EDGE = 3840;
 
 const JPEG_QUALITY = 0.82;
 

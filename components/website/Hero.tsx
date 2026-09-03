@@ -21,13 +21,15 @@ export function Hero({ image }: { image: HomepageImage }) {
        * phones, wide on desktop) so object-cover crops the same photo
        * differently instead of just shrinking one fixed frame.
        *
-       * From lg up the ratio gives way to one screen exactly. It used to be
-       * aspect-[16/9] with min-h-[120vh], which on a 1920x1080 screen came
-       * out 1296px tall — 216px past the fold, so the hero could never be
-       * seen whole. The header draws over the top of it rather than above
-       * it, so 100svh is the full frame, not a screen minus the header.
+       * Every figure here is 15% taller than the frame that exactly fills
+       * one screen (requested explicitly, in full knowledge of the
+       * trade-off below) — from lg up that means 115svh: 15% of the hero
+       * now sits past the fold on first paint rather than the whole frame
+       * landing inside it. The header still draws over the top of it
+       * rather than above it, so 115svh is 115% of the true viewport, not
+       * of a viewport minus the header.
        */}
-      <div className="relative aspect-[4/6.5] w-full sm:aspect-[16/13] lg:aspect-auto lg:h-[100svh]">
+      <div className="relative aspect-[4/7.475] w-full sm:aspect-[16/14.95] lg:aspect-auto lg:h-[115svh]">
         <ResponsiveSlotImage
           image={image}
           sizes="100vw"
