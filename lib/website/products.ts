@@ -18,6 +18,8 @@ export type Product = {
   /** Set only when the piece is discounted; always < priceRupees. */
   salePriceRupees: number | null;
   readyToShip: boolean;
+  /** Whether this piece can be collected from the Kudmayi store. */
+  storePickup: boolean;
   colorName: string;
   colorHex: string;
   /** null/empty means "no real copy yet" — the product page falls back to
@@ -43,7 +45,7 @@ export type Product = {
  * unreachable. The public site never 500s over this; see getDb()'s doc
  * comment for the reasoning.
  */
-const RAW: Omit<Product, "hoverImage" | "description" | "sizes" | "salePriceRupees" | "tags" | "featured">[] = [
+const RAW: Omit<Product, "hoverImage" | "description" | "sizes" | "salePriceRupees" | "tags" | "featured" | "storePickup">[] = [
   // Sherwanis
   { slug: "ivory-embroidered-sherwani", name: "Ivory Embroidered Sherwani", category: "sherwanis", priceRupees: 145000, readyToShip: true, colorName: "Ivory", colorHex: "#f3ecdf", image: { src: unsplash("1759906766080-82b785c61f51", 900), alt: "Groom in traditional Indian wedding sherwani" } },
   { slug: "pearl-zardozi-sherwani", name: "Pearl Zardozi Sherwani", category: "sherwanis", priceRupees: 152000, readyToShip: false, colorName: "Pearl", colorHex: "#ede6d6", image: { src: unsplash("1729347917808-e3e35a462fec", 900), alt: "Man in a white embroidered sherwani" } },
@@ -120,6 +122,7 @@ export const PLACEHOLDER_PRODUCTS: Product[] = RAW.map((product) => {
     salePriceRupees: null,
     tags: [],
     featured: PLACEHOLDER_FEATURED_SLUGS.has(product.slug),
+    storePickup: false,
     hoverImage: next.image,
   };
 });
@@ -160,6 +163,7 @@ function rowToProduct(
     priceRupees: row.priceRupees,
     salePriceRupees: row.salePriceRupees,
     readyToShip: row.readyToShip,
+    storePickup: row.storePickup,
     colorName: row.colorName,
     colorHex: row.colorHex,
     description: row.description,

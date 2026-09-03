@@ -63,6 +63,7 @@ export default async function EditProductPage({
             priceRupees: row.priceRupees,
             salePriceRupees: row.salePriceRupees,
             readyToShip: row.readyToShip,
+            storePickup: row.storePickup,
             colorName: row.colorName,
             colorHex: row.colorHex,
             description: row.description,

@@ -10,7 +10,8 @@ import { whatsAppLink } from "@/lib/website/whatsapp";
 
 function orderMessage(items: CartItem[], subtotalRupees: number): string {
   const lines = items.map((item) => {
-    const variant = [item.colorName, item.size].filter(Boolean).join(", ");
+    const delivery = item.deliveryMethod === "store" ? "Store pick-up" : "Home delivery";
+    const variant = [item.colorName, item.size, delivery].filter(Boolean).join(", ");
     return `• ${item.qty} × ${item.name} (${variant}) — ${formatPKR(item.unitPriceRupees * item.qty)}`;
   });
   return [
@@ -89,7 +90,13 @@ export function CartDrawer() {
                   <div className="flex flex-1 flex-col">
                     <p className="font-display text-sm leading-snug">{item.name}</p>
                     <p className="text-muted mt-1 text-xs">
-                      {[item.colorName, item.size].filter(Boolean).join(" · ")}
+                      {[
+                        item.colorName,
+                        item.size,
+                        item.deliveryMethod === "store" ? "Store pick-up" : "Home delivery",
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </p>
                     <p className="mt-1 text-sm">{formatPKR(item.unitPriceRupees)}</p>
 
@@ -133,7 +140,7 @@ export function CartDrawer() {
               </div>
               <p className="text-muted text-xs">
                 Checkout is completed on WhatsApp — send your order and we&rsquo;ll confirm
-                sizing, delivery, and payment with you directly.
+                sizing, pick-up or delivery, and payment with you directly.
               </p>
               <a
                 href={whatsAppLink(orderMessage(items, subtotalRupees))}

@@ -3,6 +3,8 @@
 import { createContext, useCallback, useContext, useMemo, useState, useSyncExternalStore } from "react";
 import { createLocalStore } from "@/lib/website/local-store";
 
+export type DeliveryMethod = "home" | "store";
+
 export type CartItem = {
   /** slug + colour + size, so the same garment in a different size is a
    *  separate line — not a real product identity, just a cart row key. */
@@ -14,10 +16,14 @@ export type CartItem = {
   unitPriceRupees: number;
   colorName: string;
   size: string | null;
+  /** Optional only for carts saved before delivery selection was introduced. */
+  deliveryMethod?: DeliveryMethod;
   qty: number;
 };
 
-type NewCartItem = Omit<CartItem, "qty" | "key">;
+type NewCartItem = Omit<CartItem, "qty" | "key" | "deliveryMethod"> & {
+  deliveryMethod: DeliveryMethod;
+};
 
 type CartContextValue = {
   items: CartItem[];
@@ -37,8 +43,13 @@ const CartContext = createContext<CartContextValue | null>(null);
 const STORAGE_KEY = "kudmayi:cart:v1";
 const cartStore = createLocalStore<CartItem[]>(STORAGE_KEY, []);
 
-function makeKey(slug: string, colorName: string, size: string | null) {
-  return [slug, colorName, size ?? ""].join("::");
+function makeKey(
+  slug: string,
+  colorName: string,
+  size: string | null,
+  deliveryMethod: DeliveryMethod,
+) {
+  return [slug, colorName, size ?? "", deliveryMethod].join("::");
 }
 
 /**
@@ -57,7 +68,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const addItem = useCallback((item: NewCartItem, qty = 1) => {
-    const key = makeKey(item.slug, item.colorName, item.size);
+    const key = makeKey(item.slug, item.colorName, item.size, item.deliveryMethod);
     const prev = cartStore.getSnapshot();
     const existing = prev.find((i) => i.key === key);
     const next = existing

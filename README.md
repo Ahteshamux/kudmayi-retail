@@ -19,7 +19,7 @@ Without `DATABASE_URL`, the public site still runs fully — it falls back to a 
 Three things share this codebase:
 
 1. **The public storefront** (`/`, `/shop/[category]`, `/product/[slug]`, `/custom-kurta`) — unauthenticated, what customers see.
-2. **`/admin/products`** — the real product catalog manager: name, category, price, colour, sizes, description, and photo gallery (upload, reorder, delete). Backed by Postgres via Supabase + Drizzle ORM; this is what the storefront reads from once connected.
+2. **`/admin/products`** — the real product catalog manager: name, category, price, colour, sizes, description, store pick-up availability, and photo gallery (upload, reorder, delete). Backed by Postgres via Supabase + Drizzle ORM; this is what the storefront reads from once connected.
 3. **`/admin/catalog`** — a separate, older internal tool with its own four-category list (Sherwani/Waistcoat/Prince Coat/Suit), no pricing. Predates the storefront, kept as-is, unrelated data.
 
 Both admin tools sit behind the same login (`/admin/catalog/login` — there's only one sign-in screen for all of `/admin`), enforced in one place: [`proxy.ts`](proxy.ts).

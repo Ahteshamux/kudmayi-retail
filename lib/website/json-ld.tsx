@@ -1,7 +1,6 @@
 import type { Product } from "@/lib/website/products";
 import type { ShopCategorySlug } from "@/lib/website/categories";
-import { CONTACT_EMAIL, INSTAGRAM_URL, SITE_URL,
-  GOOGLE_MAPS_URL,} from "@/lib/website/constants";
+import { CONTACT_EMAIL, INSTAGRAM_URL, SITE_URL } from "@/lib/website/constants";
 import { shopCategoryLabel } from "@/lib/website/categories";
 import { PHONE_HREF } from "@/lib/website/whatsapp";
 
@@ -43,7 +42,14 @@ export function organizationJsonLd() {
       email: CONTACT_EMAIL,
       availableLanguage: ["English", "Urdu"],
     },
-    sameAs: [INSTAGRAM_URL, GOOGLE_MAPS_URL],
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Gulberg, M.M. Alam Road",
+      addressLocality: "Lahore",
+      addressRegion: "Punjab",
+      addressCountry: "PK",
+    },
+    sameAs: [INSTAGRAM_URL],
   };
 }
 

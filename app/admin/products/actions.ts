@@ -26,6 +26,7 @@ type ParsedProduct = {
   priceRupees: number;
   salePriceRupees: number | null;
   readyToShip: boolean;
+  storePickup: boolean;
   colorName: string;
   colorHex: string;
   description: string | null;
@@ -73,6 +74,7 @@ function parseForm(formData: FormData): ParsedProduct | string {
   const salePriceRaw = String(formData.get("salePriceRupees") ?? "").trim();
   const salePriceRupees = salePriceRaw === "" ? null : Number(salePriceRaw);
   const readyToShip = formData.get("readyToShip") === "on";
+  const storePickup = formData.get("storePickup") === "on";
   const colorName = String(formData.get("colorName") ?? "").trim();
   const colorHex = String(formData.get("colorHex") ?? "#171410").trim();
   const description = String(formData.get("description") ?? "").trim();
@@ -109,6 +111,7 @@ function parseForm(formData: FormData): ParsedProduct | string {
     salePriceRupees:
       salePriceRupees === null ? null : Math.round(salePriceRupees),
     readyToShip,
+    storePickup,
     colorName,
     colorHex,
     description: description || null,
@@ -167,6 +170,7 @@ export async function createProduct(
           priceRupees: parsed.priceRupees,
           salePriceRupees: parsed.salePriceRupees,
           readyToShip: parsed.readyToShip,
+          storePickup: parsed.storePickup,
           colorName: parsed.colorName,
           colorHex: parsed.colorHex,
           description: parsed.description,
@@ -234,6 +238,7 @@ export async function updateProduct(
           priceRupees: parsed.priceRupees,
           salePriceRupees: parsed.salePriceRupees,
           readyToShip: parsed.readyToShip,
+          storePickup: parsed.storePickup,
           colorName: parsed.colorName,
           colorHex: parsed.colorHex,
           description: parsed.description,

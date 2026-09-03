@@ -58,6 +58,8 @@ export function ProductForm({
    * would loop.
    */
   const [colorHex, setColorHex] = useState(product?.colorHex ?? "#171410");
+  // Raw text while the hex field is being edited; null when not editing.
+  const [hexDraft, setHexDraft] = useState<string | null>(null);
   const [photos, setPhotos] = useState<string[]>(
     (product?.images ?? prefill?.images ?? []).map((img) => img.publicUrl),
   );
@@ -186,6 +188,16 @@ export function ProductForm({
           <label htmlFor="colorHex" className="u-caps text-muted block">
             Colour swatch
           </label>
+
+          {/*
+           * The photo picker sits above the swatch, not below it. The
+           * browser's native colour popup always opens downward from the
+           * <input type="color"> and its position can't be controlled from
+           * script — with the photo underneath, the popup covered the very
+           * image you were trying to pick a colour out of.
+           */}
+          <ColorFromPhoto photos={photos} onPick={setColorHex} />
+
           <div className="flex items-center gap-3">
             <input
               id="colorHex"
@@ -195,10 +207,25 @@ export function ProductForm({
               onChange={(e) => setColorHex(e.target.value)}
               className="border-line h-11 w-14 shrink-0 border p-1"
             />
-            <span className="text-muted font-mono text-xs">{colorHex}</span>
+            {/*
+             * Typing or pasting a hex avoids the native popup altogether.
+             * Unnamed on purpose — the colour input above carries the form
+             * value; two fields sharing a name would submit twice.
+             */}
+            <input
+              type="text"
+              aria-label="Colour hex value"
+              value={hexDraft ?? colorHex}
+              onChange={(e) => setHexDraft(e.target.value)}
+              onBlur={() => {
+                const next = (hexDraft ?? "").trim().replace(/^#?/, "#");
+                if (/^#[0-9a-fA-F]{6}$/.test(next)) setColorHex(next.toLowerCase());
+                setHexDraft(null); // valid or not, snap back to the real value
+              }}
+              placeholder="#171410"
+              className="u-field font-mono text-xs"
+            />
           </div>
-
-          <ColorFromPhoto photos={photos} onPick={setColorHex} />
         </div>
       </div>
 
@@ -260,6 +287,15 @@ export function ProductForm({
             className="accent-brass h-5 w-5"
           />
           <span className="u-caps text-espresso">Ready to ship</span>
+        </label>
+        <label className="inline-flex items-center gap-2.5">
+          <input
+            type="checkbox"
+            name="storePickup"
+            defaultChecked={product?.storePickup ?? false}
+            className="accent-brass h-5 w-5"
+          />
+          <span className="u-caps text-espresso">Store pick-up</span>
         </label>
         <label className="inline-flex items-center gap-2.5">
           <input

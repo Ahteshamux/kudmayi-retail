@@ -35,6 +35,7 @@ export const storefrontProducts = pgTable(
     // Always < priceRupees, enforced in app/admin/products/actions.ts.
     salePriceRupees: integer("sale_price_rupees"),
     readyToShip: boolean("ready_to_ship").notNull().default(false),
+    storePickup: boolean("store_pickup").notNull().default(false),
     colorName: text("color_name").notNull(),
     colorHex: text("color_hex").notNull(),
     description: text("description"),

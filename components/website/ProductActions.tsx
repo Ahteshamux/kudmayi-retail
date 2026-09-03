@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useCart } from "./CartContext";
+import { useCart, type DeliveryMethod } from "./CartContext";
 import { InfoDialog } from "./InfoDialog";
 import { SizeGuideContent } from "./SizeGuideContent";
 import { SizeSelector } from "./SizeSelector";
 import { WishlistToggleButton } from "./WishlistToggleButton";
 import type { Product } from "@/lib/website/products";
 import { effectivePriceRupees } from "@/lib/website/pricing";
+import { GOOGLE_MAPS_URL, STORE_ADDRESS } from "@/lib/website/constants";
 
 /**
  * One client island covering everything on the product page that needs
@@ -21,6 +22,7 @@ export function ProductActions({ product, sizes }: { product: Product; sizes: st
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("home");
 
   function handleAddToCart() {
     if (sizes.length > 0 && !selectedSize) {
@@ -36,6 +38,7 @@ export function ProductActions({ product, sizes }: { product: Product; sizes: st
       unitPriceRupees: effectivePriceRupees(product),
       colorName: product.colorName,
       size: selectedSize,
+      deliveryMethod,
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
@@ -71,19 +74,52 @@ export function ProductActions({ product, sizes }: { product: Product; sizes: st
       )}
 
       <div className="mt-8">
-        <p className="u-caps text-muted">Delivery Method</p>
-        <div className="mt-3 flex gap-6">
-          <span className="inline-flex items-center gap-2 text-sm">
-            <span className="border-brass-deep flex h-4 w-4 items-center justify-center rounded-full border-2">
-              <span className="bg-brass-deep h-2 w-2 rounded-full" />
-            </span>
-            Home Delivery
-          </span>
-          <span className="text-muted/50 inline-flex items-center gap-2 text-sm">
-            <span className="border-line h-4 w-4 rounded-full border-2" />
-            Store Pick-up (not yet available)
-          </span>
-        </div>
+        <fieldset>
+          <legend className="u-caps text-muted">Delivery Method</legend>
+          <div className="mt-3 flex flex-wrap gap-x-6 gap-y-3">
+            <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="deliveryMethod"
+                value="home"
+                checked={deliveryMethod === "home"}
+                onChange={() => setDeliveryMethod("home")}
+                className="accent-brass h-4 w-4"
+              />
+              Home Delivery
+            </label>
+            <label
+              className={`inline-flex min-h-11 items-center gap-2 text-sm ${
+                product.storePickup ? "cursor-pointer" : "text-muted/50 cursor-not-allowed"
+              }`}
+            >
+              <input
+                type="radio"
+                name="deliveryMethod"
+                value="store"
+                checked={deliveryMethod === "store"}
+                onChange={() => setDeliveryMethod("store")}
+                disabled={!product.storePickup}
+                className="accent-brass h-4 w-4"
+              />
+              {product.storePickup ? "Store Pick-up" : "Store Pick-up (not available)"}
+            </label>
+          </div>
+        </fieldset>
+        {product.storePickup && (
+          <p className="text-muted mt-1 text-xs">
+            Pick up from{" "}
+            <a
+              href={GOOGLE_MAPS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-brass-deep underline underline-offset-2"
+            >
+              {STORE_ADDRESS}
+            </a>
+            .
+          </p>
+        )}
       </div>
 
       <div className="mt-9 flex items-center gap-3">

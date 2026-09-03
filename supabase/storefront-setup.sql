@@ -21,6 +21,7 @@ create table if not exists public.storefront_products (
   price_rupees      integer     not null check (price_rupees >= 0),
   sale_price_rupees integer,
   ready_to_ship     boolean     not null default false,
+  store_pickup      boolean     not null default false,
   color_name        text        not null,
   color_hex         text        not null,
   description       text,
@@ -33,9 +34,10 @@ create table if not exists public.storefront_products (
 );
 
 -- Additive — safe to re-run against a database created before sale
--- pricing / tags existed.
+-- pricing, tags, or store pick-up existed.
 alter table public.storefront_products add column if not exists sale_price_rupees integer;
 alter table public.storefront_products add column if not exists tags text[] not null default '{}';
+alter table public.storefront_products add column if not exists store_pickup boolean not null default false;
 alter table public.storefront_products drop constraint if exists storefront_products_sale_price_check;
 alter table public.storefront_products add constraint storefront_products_sale_price_check
   check (sale_price_rupees is null or sale_price_rupees >= 0);
@@ -186,4 +188,3 @@ create policy "authenticated can delete homepage images"
 -- homepage crops existed.
 alter table public.homepage_images add column if not exists image_url_tablet text;
 alter table public.homepage_images add column if not exists image_url_mobile text;
-
