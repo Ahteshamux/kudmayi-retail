@@ -1,21 +1,33 @@
 import Link from "next/link";
 import { HomepageImageSlot } from "@/components/admin/HomepageImageSlot";
+import { HomepageTextSlot } from "@/components/admin/HomepageTextSlot";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { getDb } from "@/lib/db/client";
-import { getAllHomepageImages } from "@/lib/website/homepage-content";
+import { getAllHomepageImages, getAllHomepageText } from "@/lib/website/homepage-content";
 import { HOMEPAGE_IMAGE_SLOTS } from "@/lib/website/homepage-slots";
+import { HOMEPAGE_TEXT_SLOTS } from "@/lib/website/homepage-text";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomepageAdminPage() {
   const db = getDb();
-  const images = await getAllHomepageImages();
+  const [images, text] = await Promise.all([
+    getAllHomepageImages(),
+    getAllHomepageText(),
+  ]);
 
   const sections = new Map<string, typeof HOMEPAGE_IMAGE_SLOTS>();
   for (const slot of HOMEPAGE_IMAGE_SLOTS) {
     const list = sections.get(slot.section) ?? [];
     list.push(slot);
     sections.set(slot.section, list);
+  }
+
+  const textSections = new Map<string, typeof HOMEPAGE_TEXT_SLOTS>();
+  for (const slot of HOMEPAGE_TEXT_SLOTS) {
+    const list = textSections.get(slot.section) ?? [];
+    list.push(slot);
+    textSections.set(slot.section, list);
   }
 
   return (
@@ -90,6 +102,19 @@ export default async function HomepageAdminPage() {
                   />
                 ))}
               </div>
+
+              {textSections.has(section) && (
+                <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {textSections.get(section)!.map((slot) => (
+                    <HomepageTextSlot
+                      key={slot.key}
+                      slotKey={slot.key}
+                      label={slot.label}
+                      value={text[slot.key] ?? slot.fallback}
+                    />
+                  ))}
+                </div>
+              )}
             </section>
           ))}
         </div>

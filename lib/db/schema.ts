@@ -123,3 +123,22 @@ export const homepageImages = pgTable(
 );
 
 export type HomepageImageRow = typeof homepageImages.$inferSelect;
+
+/**
+ * One row per admin-editable homepage text slot (a section heading, so
+ * far — see lib/website/homepage-text.ts for the slot list and each
+ * slot's fallback copy). Same convention as homepageImages above: a slot
+ * with no row here just shows its fallback text.
+ */
+export const homepageText = pgTable(
+  "homepage_text",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    slotKey: text("slot_key").notNull(),
+    value: text("value").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("homepage_text_slot_key_idx").on(table.slotKey)],
+);
+
+export type HomepageTextRow = typeof homepageText.$inferSelect;

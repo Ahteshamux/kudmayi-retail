@@ -3,7 +3,13 @@ import Link from "next/link";
 import { Reveal } from "./Reveal";
 import type { PlaceholderImage } from "@/lib/website/placeholder-images";
 
-export function EditorialCampaign({ image }: { image: PlaceholderImage }) {
+export function EditorialCampaign({
+  image,
+  heading,
+}: {
+  image: PlaceholderImage;
+  heading: string;
+}) {
   return (
     <section aria-labelledby="campaign-heading" className="relative">
       <div className="relative aspect-[21/9] w-full sm:aspect-[21/8]">
@@ -26,7 +32,7 @@ export function EditorialCampaign({ image }: { image: PlaceholderImage }) {
             id="campaign-heading"
             className="font-display text-3xl leading-tight sm:text-parchment lg:text-5xl"
           >
-            For the Moments That Matter.
+            {heading}
           </h2>
           <Link href="#shop-by-category" className="u-btn u-caps mt-7 inline-flex sm:mt-8">
             Discover the Collection

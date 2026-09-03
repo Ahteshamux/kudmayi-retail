@@ -8,7 +8,7 @@ import { InstagramGrid } from "@/components/website/InstagramGrid";
 import { PrinceCoatSection } from "@/components/website/PrinceCoatSection";
 import { SignatureSherwani } from "@/components/website/SignatureSherwani";
 import { SITE_URL } from "@/lib/website/constants";
-import { getAllHomepageImages } from "@/lib/website/homepage-content";
+import { getAllHomepageImages, getAllHomepageText } from "@/lib/website/homepage-content";
 import type { Metadata } from "next";
 
 /**
@@ -24,14 +24,20 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const images = await getAllHomepageImages();
+  const [images, text] = await Promise.all([
+    getAllHomepageImages(),
+    getAllHomepageText(),
+  ]);
 
   return (
     <>
       <Hero image={images.hero} />
       <CategorySection images={images} />
       <FeaturedCollection />
-      <EditorialCampaign image={images.editorial_campaign} />
+      <EditorialCampaign
+        image={images.editorial_campaign}
+        heading={text.editorial_campaign_heading}
+      />
       <SignatureSherwani image={images.signature_sherwani} />
       <PrinceCoatSection image={images.prince_coat_section} />
       <BespokeTeaser />

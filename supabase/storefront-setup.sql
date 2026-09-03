@@ -188,3 +188,36 @@ create policy "authenticated can delete homepage images"
 -- homepage crops existed.
 alter table public.homepage_images add column if not exists image_url_tablet text;
 alter table public.homepage_images add column if not exists image_url_mobile text;
+
+-- ---------------------------------------------------------------------------
+-- homepage_text: admin-editable homepage copy (section headings so far),
+-- one row per slot the admin has actually changed — see
+-- lib/website/homepage-text.ts for the slot list and each slot's fallback.
+-- Same "table with a fallback" convention as homepage_images above.
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.homepage_text (
+  id         uuid        primary key default gen_random_uuid(),
+  slot_key   text        not null unique,
+  value      text        not null,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.homepage_text enable row level security;
+
+drop policy if exists "public can read homepage text"        on public.homepage_text;
+drop policy if exists "authenticated can insert homepage text" on public.homepage_text;
+drop policy if exists "authenticated can update homepage text" on public.homepage_text;
+drop policy if exists "authenticated can delete homepage text" on public.homepage_text;
+
+create policy "public can read homepage text"
+  on public.homepage_text for select using (true);
+
+create policy "authenticated can insert homepage text"
+  on public.homepage_text for insert to authenticated with check (true);
+
+create policy "authenticated can update homepage text"
+  on public.homepage_text for update to authenticated using (true) with check (true);
+
+create policy "authenticated can delete homepage text"
+  on public.homepage_text for delete to authenticated using (true);

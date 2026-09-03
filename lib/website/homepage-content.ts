@@ -1,6 +1,7 @@
 import { getDb } from "@/lib/db/client";
-import { homepageImages } from "@/lib/db/schema";
+import { homepageImages, homepageText } from "@/lib/db/schema";
 import { HOMEPAGE_IMAGE_SLOTS } from "./homepage-slots";
+import { HOMEPAGE_TEXT_SLOTS } from "./homepage-text";
 import type { PlaceholderImage } from "./placeholder-images";
 
 /**
@@ -68,6 +69,37 @@ export async function getAllHomepageImages(): Promise<HomepageImages> {
 
   warnAboutFallbacks(filled, "no image has been uploaded for them");
   return images;
+}
+
+export type HomepageTextValues = Record<string, string>;
+
+/**
+ * Every homepage heading, keyed by slot — DB value where an admin has set
+ * one, the slot's own copy otherwise. Same shape as getAllHomepageImages
+ * above, including the "just return the fallbacks" behaviour when the
+ * database isn't configured or the query fails — a stale/default heading
+ * is cosmetic, not a reason to break the page.
+ */
+export async function getAllHomepageText(): Promise<HomepageTextValues> {
+  const text: HomepageTextValues = {};
+  for (const slot of HOMEPAGE_TEXT_SLOTS) text[slot.key] = slot.fallback;
+
+  const db = getDb();
+  if (!db) return text;
+
+  try {
+    const rows = await db.select().from(homepageText);
+    for (const row of rows) {
+      if (row.slotKey in text) text[row.slotKey] = row.value;
+    }
+  } catch (err) {
+    console.error(
+      "[homepage-content] homepage_text query failed; falling back to default headings:",
+      err,
+    );
+  }
+
+  return text;
 }
 
 /**
