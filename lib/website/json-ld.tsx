@@ -1,5 +1,6 @@
 import type { Product } from "@/lib/website/products";
 import type { ShopCategorySlug } from "@/lib/website/categories";
+import type { BlogPostSummary } from "@/lib/website/blog";
 import { CONTACT_EMAIL, INSTAGRAM_URL, SITE_URL } from "@/lib/website/constants";
 import { shopCategoryLabel } from "@/lib/website/categories";
 import { PHONE_HREF } from "@/lib/website/whatsapp";
@@ -16,7 +17,9 @@ export function JsonLd({ data }: { data: Record<string, unknown> }) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify(data).replace(/</g, "\\u003c"),
+      }}
     />
   );
 }
@@ -82,6 +85,44 @@ export function breadcrumbJsonLd(
       name: item.name,
       ...(item.url ? { item: item.url } : {}),
     })),
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/*  BlogPosting                                                        */
+/* ------------------------------------------------------------------ */
+
+export function blogPostingJsonLd(post: BlogPostSummary) {
+  const url = `${SITE_URL}${post.href}`;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.description,
+    image: post.image.src,
+    datePublished: post.publishedAt,
+    dateModified: post.updatedAt,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": url,
+    },
+    author: {
+      "@type": "Organization",
+      name: "Kudmayi",
+      url: SITE_URL,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Kudmayi",
+      url: SITE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/icons/logo-512.png`,
+      },
+    },
+    keywords: post.keywords.join(", "),
+    inLanguage: "en-PK",
   };
 }
 

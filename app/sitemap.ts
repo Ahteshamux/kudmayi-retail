@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/website/constants";
 import { SHOP_CATEGORIES } from "@/lib/website/categories";
 import { listAllProducts } from "@/lib/website/products";
+import { BLOG_POSTS } from "@/lib/website/blog";
 
 /**
  * Covers every public route: the homepage, the custom-kurta page, each
@@ -43,7 +44,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.7,
     },
+    {
+      url: `${SITE_URL}/blog`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
   ];
+
+  const blogPages: MetadataRoute.Sitemap = BLOG_POSTS.map((post) => ({
+    url: `${SITE_URL}${post.href}`,
+    lastModified: new Date(post.updatedAt),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
 
   const categoryPages: MetadataRoute.Sitemap = SHOP_CATEGORIES.map((c) => ({
     url: `${SITE_URL}/shop/${c.slug}`,
@@ -60,5 +74,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticPages, ...categoryPages, ...productPages];
+  return [...staticPages, ...categoryPages, ...blogPages, ...productPages];
 }
