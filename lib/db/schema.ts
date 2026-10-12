@@ -45,6 +45,9 @@ export const storefrontProducts = pgTable(
     tags: text("tags").array().notNull().default([]),
     featured: boolean("featured").notNull().default(false),
     published: boolean("published").notNull().default(true),
+    // Set when published from a Retail catalog item (public.products) —
+    // see app/admin/products/new/page.tsx. Null for pieces added directly.
+    retailProductId: uuid("retail_product_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

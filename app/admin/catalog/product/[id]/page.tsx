@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -9,6 +10,8 @@ import { SectionLabel } from "@/components/SectionLabel";
 import { SwatchTag } from "@/components/SwatchTag";
 import { updateProduct } from "../actions";
 import { categoryLabel } from "@/lib/categories";
+import { getDb } from "@/lib/db/client";
+import { storefrontProducts } from "@/lib/db/schema";
 import { createClient } from "@/lib/supabase/server";
 import type { Product } from "@/lib/types";
 
@@ -33,6 +36,11 @@ export default async function ProductPage({
 
   const backHref = `/admin/catalog/category/${product.category}`;
   const isEditing = edit === "1";
+
+  const listing = await getDb()?.query.storefrontProducts.findFirst({
+    where: eq(storefrontProducts.retailProductId, product.id),
+    columns: { slug: true },
+  });
 
   return (
     <>
@@ -126,18 +134,27 @@ export default async function ProductPage({
                 >
                   Edit
                 </Link>
-                <Link
-                  href={`/admin/products/new?fromRetail=${product.id}`}
-                  className="u-btn-ghost u-caps"
-                >
-                  Publish to Storefront &rarr;
-                </Link>
+                {listing ? (
+                  <Link
+                    href={`/admin/products/${listing.slug}`}
+                    className="u-btn-ghost u-caps"
+                  >
+                    Edit store listing &rarr;
+                  </Link>
+                ) : (
+                  <Link
+                    href={`/admin/products/new?fromRetail=${product.id}`}
+                    className="u-btn-ghost u-caps"
+                  >
+                    Publish to Storefront &rarr;
+                  </Link>
+                )}
                 <DeleteProductButton id={product.id} name={product.name} />
               </div>
               <p className="text-muted mt-3 text-xs">
-                Sends this piece&rsquo;s name, colour, category, and photo to a new
-                storefront listing — this Retail entry is untouched, and the two
-                stay independent afterwards.
+                {listing
+                  ? "Already on the storefront. Changes there don't touch this Retail entry."
+                  : "Sends this piece\u2019s name, colour, category, and photo to a new storefront listing — this Retail entry is untouched, and the two stay independent afterwards."}
               </p>
             </div>
           </div>

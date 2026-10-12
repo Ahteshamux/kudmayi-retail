@@ -31,6 +31,7 @@ export function ProductForm({
   product,
   prefill,
   defaultCategory,
+  retailProductId,
   submitLabel,
   cancelHref,
 }: {
@@ -41,6 +42,9 @@ export function ProductForm({
    *  mode) is set. */
   prefill?: Prefill;
   defaultCategory?: string;
+  /** The Retail item a new listing is published from — stored so a second
+   *  publish of the same item opens this listing instead. */
+  retailProductId?: string;
   submitLabel: string;
   cancelHref: string;
 }) {
@@ -68,6 +72,9 @@ export function ProductForm({
   return (
     <form action={formAction} className="max-w-2xl space-y-7">
       {product && <input type="hidden" name="id" value={product.id} />}
+      {!product && retailProductId && (
+        <input type="hidden" name="retailProductId" value={retailProductId} />
+      )}
 
       <div className="space-y-2">
         <label htmlFor="name" className="u-caps text-muted block">

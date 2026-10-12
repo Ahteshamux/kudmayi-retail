@@ -38,6 +38,12 @@ create table if not exists public.storefront_products (
 alter table public.storefront_products add column if not exists sale_price_rupees integer;
 alter table public.storefront_products add column if not exists tags text[] not null default '{}';
 alter table public.storefront_products add column if not exists store_pickup boolean not null default false;
+-- Which Retail catalog item (public.products) this listing was published
+-- from, so publishing the same item twice opens the existing listing
+-- instead of creating a duplicate. No FK: the two stay independent.
+alter table public.storefront_products add column if not exists retail_product_id uuid;
+create unique index if not exists storefront_products_retail_product_idx
+  on public.storefront_products (retail_product_id) where retail_product_id is not null;
 alter table public.storefront_products drop constraint if exists storefront_products_sale_price_check;
 alter table public.storefront_products add constraint storefront_products_sale_price_check
   check (sale_price_rupees is null or sale_price_rupees >= 0);

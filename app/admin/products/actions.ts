@@ -182,6 +182,17 @@ export async function createProduct(
   const parsed = parseForm(formData);
   if (typeof parsed === "string") return { error: parsed };
 
+  const retailRaw = String(formData.get("retailProductId") ?? "");
+  const retailProductId = /^[0-9a-f-]{36}$/i.test(retailRaw) ? retailRaw : null;
+
+  if (retailProductId) {
+    // Already published (e.g. a second tab, or a double submit) — open it.
+    const linked = await db.query.storefrontProducts.findFirst({
+      where: eq(storefrontProducts.retailProductId, retailProductId),
+    });
+    if (linked) redirect(`/admin/products/${linked.slug}`);
+  }
+
   try {
     parsed.slug = await uniqueSlug(db, parsed.slug);
     // One transaction: a product row and its images commit together or
@@ -204,6 +215,7 @@ export async function createProduct(
           sizes: parsed.sizes,
           tags: parsed.tags,
           featured: parsed.featured,
+          retailProductId,
         })
         .returning();
 
