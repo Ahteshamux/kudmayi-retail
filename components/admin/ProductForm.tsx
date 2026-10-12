@@ -140,7 +140,7 @@ export function ProductForm({
             name="priceRupees"
             type="number"
             min={0}
-            step={500}
+            step={1}
             required
             defaultValue={product?.priceRupees}
             placeholder="145000"
@@ -158,7 +158,7 @@ export function ProductForm({
           name="salePriceRupees"
           type="number"
           min={0}
-          step={500}
+          step={1}
           defaultValue={product?.salePriceRupees ?? ""}
           placeholder="Leave blank — not on sale"
           className="u-field"
