@@ -11,6 +11,16 @@ import {
   webSiteJsonLd,
 } from "@/lib/website/json-ld";
 
+/*
+ * The live site sits behind Hostinger's CDN, which honours s-maxage.
+ * Fully static pages get s-maxage=31536000 (a year), and revalidatePath()
+ * only clears Next's own cache — never the CDN — so a product saved in the
+ * admin stayed invisible to shoppers. A 60-second window keeps pages
+ * CDN-cached but lets new products and price changes appear within a
+ * minute. Applies to every storefront page below this layout.
+ */
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: {
     default: "Kudmayi — Crafted for the Occasion",

@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
   // scanning for version-specific exploits, and it buys nothing.
   poweredByHeader: false,
 
+  // Caps stale-while-revalidate (expireTime − revalidate) on the
+  // storefront's 60s pages, so the CDN can't keep serving an old copy for
+  // up to a year after it goes stale. See app/(website)/layout.tsx.
+  expireTime: 600,
+
   async headers() {
     return [
       {
