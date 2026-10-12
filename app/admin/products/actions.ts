@@ -2,7 +2,7 @@
 
 import { requireUser, unauthorizedState } from "@/lib/supabase/require-user";
 
-import { eq } from "drizzle-orm";
+import { eq, like, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDb } from "@/lib/db/client";
@@ -137,6 +137,32 @@ async function removeStoredFiles(paths: string[]) {
   await supabase.storage.from(STOREFRONT_BUCKET).remove(realPaths);
 }
 
+type Db = NonNullable<ReturnType<typeof getDb>>;
+
+/**
+ * Two pieces can share a name, but not a URL. If the slug is taken, append
+ * -2, -3, … rather than refusing the save. `excludeId` lets an edited
+ * product keep its own slug.
+ */
+async function uniqueSlug(db: Db, base: string, excludeId?: string) {
+  const rows = await db
+    .select({ id: storefrontProducts.id, slug: storefrontProducts.slug })
+    .from(storefrontProducts)
+    .where(
+      or(
+        eq(storefrontProducts.slug, base),
+        like(storefrontProducts.slug, `${base}-%`),
+      ),
+    );
+  const taken = new Set(
+    rows.filter((r) => r.id !== excludeId).map((r) => r.slug),
+  );
+  if (!taken.has(base)) return base;
+  let n = 2;
+  while (taken.has(`${base}-${n}`)) n++;
+  return `${base}-${n}`;
+}
+
 function unconfiguredError(): ActionState {
   return {
     error:
@@ -157,6 +183,7 @@ export async function createProduct(
   if (typeof parsed === "string") return { error: parsed };
 
   try {
+    parsed.slug = await uniqueSlug(db, parsed.slug);
     // One transaction: a product row and its images commit together or
     // not at all. Previously a failed image insert left a published
     // product with no photos, which renders as a broken <Image src="">.
@@ -224,6 +251,7 @@ export async function updateProduct(
       where: eq(storefrontProducts.id, id),
     });
     previousCategory = (existing?.category as ShopCategorySlug) ?? null;
+    parsed.slug = await uniqueSlug(db, parsed.slug, id);
 
     // The image swap is delete-then-insert, so without a transaction a
     // failed insert would leave the product with NO images — destroying
