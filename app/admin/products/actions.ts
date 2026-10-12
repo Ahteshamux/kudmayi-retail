@@ -301,12 +301,14 @@ export async function deleteProduct(formData: FormData): Promise<void> {
 }
 
 function friendlyDbError(err: unknown, slug: string): string {
-  const message = err instanceof Error ? err.message : String(err);
-  if (
-    message.includes("storefront_products_slug_idx") ||
-    message.includes("duplicate key")
-  ) {
+  // Drizzle wraps the Postgres error as "Failed query: <sql> params: …" and
+  // keeps the real one on `cause` — that's where the constraint name is.
+  const cause = err instanceof Error ? err.cause : undefined;
+  const pg = (cause ?? err) as { code?: string; message?: string } | undefined;
+  const message = pg?.message ?? String(err);
+  if (pg?.code === "23505" || message.includes("duplicate key")) {
     return `The slug "${slug}" is already used by another product — change the name or slug.`;
   }
-  return message;
+  console.error("Product save failed:", err);
+  return `Couldn't save the product: ${message}`;
 }
