@@ -50,7 +50,10 @@ export default async function SearchPage({
   const { q } = await searchParams;
   const query = typeof q === "string" ? q.trim() : "";
 
-  const results = query ? (await listAllProducts()).filter((p) => matches(p, query)) : [];
+  // Search is rendered per request, so there's no cached copy to fall back
+  // on — a database blip shows "no results" rather than the error page.
+  const all = query ? await listAllProducts().catch(() => [] as Product[]) : [];
+  const results = all.filter((p) => matches(p, query));
 
   return (
     <div className="u-container pt-32 pb-24 sm:pt-40">

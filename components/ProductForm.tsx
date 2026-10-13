@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
-import { useFormStatus } from "react-dom";
+import { startTransition, useActionState, useState } from "react";
 import { ImageUpload } from "./ImageUpload";
 import { CATEGORIES, type CategorySlug } from "@/lib/categories";
 import type { ActionState } from "@/app/admin/catalog/product/actions";
@@ -19,12 +18,13 @@ type Props = {
 
 function SubmitButton({
   label,
+  pending,
   uploading,
 }: {
   label: string;
+  pending: boolean;
   uploading: boolean;
 }) {
-  const { pending } = useFormStatus();
   return (
     <button
       type="submit"
@@ -43,7 +43,7 @@ export function ProductForm({
   cancelHref,
   submitLabel,
 }: Props) {
-  const [state, formAction] = useActionState<ActionState, FormData>(action, {
+  const [state, formAction, pending] = useActionState<ActionState, FormData>(action, {
     error: null,
   });
   const [imageUrl, setImageUrl] = useState<string | null>(
@@ -52,7 +52,17 @@ export function ProductForm({
   const [uploading, setUploading] = useState(false);
 
   return (
-    <form action={formAction} className="max-w-lg space-y-7">
+    <form
+      // onSubmit rather than <form action>: React 19 resets action-prop
+      // forms after every submission, so a failed save wiped the fields.
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (pending || uploading) return;
+        const formData = new FormData(event.currentTarget);
+        startTransition(() => formAction(formData));
+      }}
+      className="max-w-lg space-y-7"
+    >
       {product && <input type="hidden" name="id" value={product.id} />}
       <input type="hidden" name="image_url" value={imageUrl ?? ""} />
 
@@ -136,7 +146,7 @@ export function ProductForm({
       )}
 
       <div className="flex items-center gap-3">
-        <SubmitButton label={submitLabel} uploading={uploading} />
+        <SubmitButton label={submitLabel} pending={pending} uploading={uploading} />
         <Link href={cancelHref} className="u-btn-ghost u-caps">
           Cancel
         </Link>

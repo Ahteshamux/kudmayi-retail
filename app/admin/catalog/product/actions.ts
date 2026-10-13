@@ -2,10 +2,14 @@
 
 import { requireUser, unauthorizedState } from "@/lib/supabase/require-user";
 
+import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isCategorySlug, type CategorySlug } from "@/lib/categories";
+import { getDb } from "@/lib/db/client";
+import { storefrontProductImages } from "@/lib/db/schema";
 import { storagePathFromPublicUrl } from "@/lib/image";
+import { BLOG_PROTECTED_IMAGE_URLS } from "@/lib/website/blog";
 import { createClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -47,7 +51,19 @@ async function removeStoredImage(
   imageUrl: string | null,
 ) {
   const path = storagePathFromPublicUrl(imageUrl, BUCKET);
-  if (!path) return;
+  if (!path || !imageUrl || BLOG_PROTECTED_IMAGE_URLS.has(imageUrl)) return;
+  // A storefront listing published before photos were copied on save may
+  // still point at this exact file — deleting it would blank that listing.
+  // If the check itself fails, keep the file: an orphan costs nothing.
+  try {
+    const inUse = await getDb()?.query.storefrontProductImages.findFirst({
+      where: eq(storefrontProductImages.publicUrl, imageUrl),
+      columns: { id: true },
+    });
+    if (inUse) return;
+  } catch {
+    return;
+  }
   await supabase.storage.from(BUCKET).remove([path]);
 }
 

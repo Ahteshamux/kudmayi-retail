@@ -29,7 +29,20 @@ export async function compressImage(
   file: File,
   maxEdge: number = MAX_EDGE,
 ): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    // Most often an iPhone HEIC photo, which only Safari can decode. The
+    // browser's own "source image could not be decoded" means nothing to
+    // the person uploading.
+    const heic = /\.hei[cf]$/i.test(file.name) || /hei[cf]/i.test(file.type);
+    throw new Error(
+      heic
+        ? `"${file.name}" is an iPhone HEIC photo this browser can't read. Upload it from Safari, or save it as JPEG first.`
+        : `"${file.name}" couldn't be read as an image. Try a JPEG or PNG.`,
+    );
+  }
 
   try {
     const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));

@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useCallback, useState } from "react";
-import { useFormStatus } from "react-dom";
+import { startTransition, useActionState, useCallback, useState } from "react";
 import { ColorFromPhoto } from "./ColorFromPhoto";
 import { ProductImagesUploader } from "./ProductImagesUploader";
 import { slugify, type ActionState, type ImageInput } from "@/lib/website/admin-products-shared";
@@ -10,11 +9,18 @@ import { SITE_HOST } from "@/lib/website/constants";
 import { SHOP_CATEGORIES } from "@/lib/website/categories";
 import type { Product } from "@/lib/website/products";
 
-function SubmitButton({ label }: { label: string }) {
-  const { pending } = useFormStatus();
+function SubmitButton({
+  label,
+  pending,
+  uploading,
+}: {
+  label: string;
+  pending: boolean;
+  uploading: boolean;
+}) {
   return (
-    <button type="submit" disabled={pending} className="u-btn u-caps">
-      {pending ? "Saving…" : label}
+    <button type="submit" disabled={pending || uploading} className="u-btn u-caps">
+      {pending ? "Saving…" : uploading ? "Waiting for photos…" : label}
     </button>
   );
 }
@@ -48,9 +54,10 @@ export function ProductForm({
   submitLabel: string;
   cancelHref: string;
 }) {
-  const [state, formAction] = useActionState<ActionState, FormData>(action, {
+  const [state, formAction, pending] = useActionState<ActionState, FormData>(action, {
     error: null,
   });
+  const [uploading, setUploading] = useState(false);
   const [name, setName] = useState(product?.name ?? prefill?.name ?? "");
   const [slug, setSlug] = useState(product?.slug ?? (prefill?.name ? slugify(prefill.name) : ""));
   const [slugTouched, setSlugTouched] = useState(Boolean(product));
@@ -70,7 +77,22 @@ export function ProductForm({
   const handlePhotosChange = useCallback((urls: string[]) => setPhotos(urls), []);
 
   return (
-    <form action={formAction} className="max-w-2xl space-y-7">
+    <form
+      /*
+       * Submitted via onSubmit, not <form action>. React 19 resets a form
+       * after every action-prop submission — failed ones included — so a
+       * validation error used to wipe the category, prices, colour, sizes,
+       * description and checkboxes (and, when editing, silently put back
+       * the old values). Dispatching by hand keeps what was typed.
+       */
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (pending || uploading) return;
+        const formData = new FormData(event.currentTarget);
+        startTransition(() => formAction(formData));
+      }}
+      className="max-w-2xl space-y-7"
+    >
       {product && <input type="hidden" name="id" value={product.id} />}
       {!product && retailProductId && (
         <input type="hidden" name="retailProductId" value={retailProductId} />
@@ -283,6 +305,7 @@ export function ProductForm({
       <ProductImagesUploader
         initialImages={product?.images ?? prefill?.images ?? []}
         onPhotosChange={handlePhotosChange}
+        onUploadingChange={setUploading}
       />
 
       <div className="flex flex-wrap gap-6">
@@ -322,7 +345,7 @@ export function ProductForm({
       )}
 
       <div className="flex items-center gap-3">
-        <SubmitButton label={submitLabel} />
+        <SubmitButton label={submitLabel} pending={pending} uploading={uploading} />
         <Link href={cancelHref} className="u-btn-ghost u-caps">
           Cancel
         </Link>

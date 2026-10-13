@@ -23,10 +23,13 @@ type GalleryImage = ImageInput & { key: string };
 export function ProductImagesUploader({
   initialImages,
   onPhotosChange,
+  onUploadingChange,
 }: {
   initialImages: ImageInput[];
   /** Lets the colour eyedropper sample whatever is currently uploaded. */
   onPhotosChange?: (urls: string[]) => void;
+  /** Lets the form hold Save until every photo has finished uploading. */
+  onUploadingChange?: (uploading: boolean) => void;
 }) {
   const [images, setImages] = useState<GalleryImage[]>(() =>
     initialImages.map((img) => ({ ...img, key: crypto.randomUUID() })),
@@ -50,42 +53,53 @@ export function ProductImagesUploader({
 
     setError(null);
     setUploading(true);
+    onUploadingChange?.(true);
 
+    /*
+     * Each photo succeeds or fails on its own. This used to stop at the
+     * first failure and discard the batch — photos already uploaded were
+     * never added to the product, so picking five photos could silently
+     * yield none.
+     */
+    const failures: string[] = [];
     try {
       const supabase = createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error("Your session expired. Sign in again.");
+      if (!user) throw new Error("Your session expired. Sign in again, then add the photos.");
 
-      const uploaded: GalleryImage[] = [];
       for (const file of files) {
-        const blob = await compressImage(file);
-        const path = `${crypto.randomUUID()}.jpg`;
-        const { error: uploadError } = await supabase.storage
-          .from(STOREFRONT_BUCKET)
-          .upload(path, blob, { contentType: "image/jpeg" });
-        if (uploadError) throw uploadError;
+        try {
+          const blob = await compressImage(file);
+          const path = `${crypto.randomUUID()}.jpg`;
+          const { error: uploadError } = await supabase.storage
+            .from(STOREFRONT_BUCKET)
+            .upload(path, blob, { contentType: "image/jpeg" });
+          if (uploadError) throw uploadError;
 
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from(STOREFRONT_BUCKET).getPublicUrl(path);
+          const {
+            data: { publicUrl },
+          } = supabase.storage.from(STOREFRONT_BUCKET).getPublicUrl(path);
 
-        uploaded.push({
-          key: crypto.randomUUID(),
-          storagePath: path,
-          publicUrl,
-          altText: "",
-        });
+          // Added one at a time so each photo appears as soon as it's up.
+          setImages((prev) => [
+            ...prev,
+            { key: crypto.randomUUID(), storagePath: path, publicUrl, altText: "" },
+          ]);
+        } catch (err) {
+          failures.push(err instanceof Error ? err.message : `"${file.name}" didn't upload.`);
+        }
       }
-
-      setImages((prev) => [...prev, ...uploaded]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed. Try again.");
+      failures.push(err instanceof Error ? err.message : "Upload failed. Try again.");
     } finally {
       setUploading(false);
+      onUploadingChange?.(false);
       if (inputRef.current) inputRef.current.value = "";
     }
+
+    if (failures.length > 0) setError(failures.join(" "));
   }
 
   function remove(key: string) {

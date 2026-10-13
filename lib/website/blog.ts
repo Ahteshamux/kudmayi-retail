@@ -89,7 +89,7 @@ export const BLOG_PRODUCT_IMAGES = {
     productHref: "/product/shehnai",
   },
   mirza: {
-    src: `${PRODUCT_IMAGE_BASE}/product-images/415a8281-abcf-467d-8c52-cbe5a4f236e3/82b39d25-89d0-4c14-b85b-c2e6d8ef542e.jpg`,
+    src: `${PRODUCT_IMAGE_BASE}/storefront-products/2a6b7d03-b945-460c-9596-6e1a708a33ea.jpg`,
     alt: "Kudmayi Mirza warm camel prince coat with gold cuff and side embroidery.",
     productName: "Mirza",
     productHref: "/product/mirza",
@@ -107,6 +107,17 @@ export const BLOG_PRODUCT_IMAGES = {
     productHref: "/product/tajdaar",
   },
 } satisfies Record<string, BlogProductImage>;
+
+/**
+ * Every catalogue photo the blog shows, by exact URL. The admin's
+ * photo-cleanup code (Retail and storefront) skips these files: a blog
+ * post hardcodes its photos, so deleting one when a product's photo is
+ * replaced would silently break the article — which is how the MIRZA image
+ * here went missing once already.
+ */
+export const BLOG_PROTECTED_IMAGE_URLS: ReadonlySet<string> = new Set(
+  Object.values(BLOG_PRODUCT_IMAGES).map((img) => img.src),
+);
 
 export const NIKAH_DRESS_IDEAS_POST: BlogPostSummary = {
   slug: NIKAH_DRESS_IDEAS_SLUG,

@@ -14,6 +14,7 @@ import {
   type ActionState,
   type ImageInput,
 } from "@/lib/website/admin-products-shared";
+import { BLOG_PROTECTED_IMAGE_URLS } from "@/lib/website/blog";
 import {
   isShopCategorySlug,
   type ShopCategorySlug,
@@ -131,10 +132,70 @@ function revalidateFor(category: ShopCategorySlug, slug?: string) {
 
 /** Best-effort — a stale file is not worth failing the write over. */
 async function removeStoredFiles(paths: string[]) {
-  const realPaths = paths.filter((p) => !p.startsWith("http"));
-  if (realPaths.length === 0) return;
   const supabase = await createClient();
+  const realPaths = paths.filter((p) => {
+    if (p.startsWith("http")) return false;
+    // A blog article may show this exact file — never delete it out from under one.
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from(STOREFRONT_BUCKET).getPublicUrl(p);
+    return !BLOG_PROTECTED_IMAGE_URLS.has(publicUrl);
+  });
+  if (realPaths.length === 0) return;
   await supabase.storage.from(STOREFRONT_BUCKET).remove(realPaths);
+}
+
+const PUBLIC_PREFIX = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/`;
+
+/**
+ * Gives the listing its own copy of any photo it only points at — chiefly
+ * the Retail photo carried over by "Publish to Storefront".
+ *
+ * A borrowed photo lives in Retail's bucket, and Retail deletes its old
+ * file whenever that item's photo is replaced or the item is removed. The
+ * storefront listing then shows a broken image with nothing in the admin
+ * to say so (this is how MIRZA lost its photo). Copying on save means the
+ * two catalogues really are independent, as the publish button promises.
+ *
+ * Returns an error string if a photo can't be copied — usually because the
+ * source file is already gone — so the admin is told now, rather than a
+ * shopper finding a blank card later.
+ */
+async function adoptBorrowedImages(
+  images: ImageInput[],
+): Promise<ImageInput[] | string> {
+  if (!images.some((img) => img.storagePath.startsWith("http"))) return images;
+
+  const supabase = await createClient();
+  const out: ImageInput[] = [];
+  for (const img of images) {
+    if (!img.storagePath.startsWith("http") || !img.publicUrl.startsWith(PUBLIC_PREFIX)) {
+      out.push(img);
+      continue;
+    }
+    const [bucket, ...rest] = img.publicUrl
+      .slice(PUBLIC_PREFIX.length)
+      .split("?")[0]
+      .split("/");
+    const sourcePath = decodeURIComponent(rest.join("/"));
+    if (bucket === STOREFRONT_BUCKET) {
+      out.push({ ...img, storagePath: sourcePath });
+      continue;
+    }
+
+    const destPath = `${crypto.randomUUID()}.jpg`;
+    const { error } = await supabase.storage
+      .from(bucket)
+      .copy(sourcePath, destPath, { destinationBucket: STOREFRONT_BUCKET });
+    if (error) {
+      return "One of the photos carried over from Retail can't be found any more. Remove it and upload the photo again.";
+    }
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from(STOREFRONT_BUCKET).getPublicUrl(destPath);
+    out.push({ ...img, storagePath: destPath, publicUrl });
+  }
+  return out;
 }
 
 type Db = NonNullable<ReturnType<typeof getDb>>;
@@ -192,6 +253,10 @@ export async function createProduct(
     });
     if (linked) redirect(`/admin/products/${linked.slug}`);
   }
+
+  const adopted = await adoptBorrowedImages(parsed.images);
+  if (typeof adopted === "string") return { error: adopted };
+  parsed.images = adopted;
 
   try {
     parsed.slug = await uniqueSlug(db, parsed.slug);
@@ -255,6 +320,10 @@ export async function updateProduct(
   if (typeof parsed === "string") return { error: parsed };
 
   const removedPaths = parseStringList(formData.get("removedImagePaths"));
+
+  const adopted = await adoptBorrowedImages(parsed.images);
+  if (typeof adopted === "string") return { error: adopted };
+  parsed.images = adopted;
 
   let previousCategory: ShopCategorySlug | null = null;
 

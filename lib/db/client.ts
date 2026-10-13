@@ -31,7 +31,18 @@ export function getDb() {
   // Supabase's Postgres always requires SSL; `require` here means "use
   // SSL, don't bother verifying the CA chain" — fine for a managed
   // Supabase endpoint, same trust level the dashboard's own tools use.
-  const client = postgres(url, { prepare: false, ssl: "require" });
+  const client = postgres(url, {
+    prepare: false,
+    ssl: "require",
+    // The site runs as one long-lived Node process. Supabase's pooler
+    // closes connections that sit idle, and reusing one it has already
+    // dropped fails that query — an intermittent "save didn't work" or a
+    // missing product page. Retiring idle connections first avoids it;
+    // connect_timeout stops a stalled connect from hanging a request.
+    idle_timeout: 20,
+    max_lifetime: 60 * 30,
+    connect_timeout: 10,
+  });
   cached = drizzle(client, { schema });
   return cached;
 }

@@ -140,8 +140,7 @@ export const PLACEHOLDER_PRODUCTS: Product[] = RAW.map((product) => {
  * unreachable would publish a fake catalogue at fake prices — customers
  * could add them to a cart and send a WhatsApp order for a piece that
  * doesn't exist. An empty category is recoverable; a fabricated price is
- * not. So in production a database failure yields nothing, and the page
- * renders its real empty state.
+ * not. So production never falls back to it — see handleDbError below.
  */
 const ALLOW_PLACEHOLDERS = process.env.NODE_ENV !== "production";
 
@@ -175,16 +174,25 @@ function rowToProduct(
   };
 }
 
-function logDbFallback(context: string, err: unknown) {
-  // The message has to match what actually happens, which differs by
-  // environment: production serves nothing rather than inventing a
-  // catalogue (see ALLOW_PLACEHOLDERS). Claiming "serving the placeholder
-  // catalog" in production would send someone hunting for placeholder data
-  // that was never rendered.
+/**
+ * In development, log and fall back to the placeholder catalogue. In
+ * production, rethrow.
+ *
+ * Production used to swallow the error and return "no products". Storefront
+ * pages are statically cached (ISR, and Hostinger's CDN on top), so one
+ * slow or dropped database connection got baked into the cache: a category
+ * rendered empty and a product page rendered as 404 — and stayed that way
+ * until the next regeneration. Throwing instead makes Next.js keep serving
+ * the last good copy of the page and try again on the next request, which
+ * is exactly what a transient blip needs.
+ */
+function handleDbError(context: string, err: unknown): never | void {
+  if (!ALLOW_PLACEHOLDERS) {
+    console.error(`[products] ${context} — database query failed:`, err);
+    throw err;
+  }
   console.error(
-    ALLOW_PLACEHOLDERS
-      ? `[products] ${context} — database query failed; serving the placeholder catalog (development only):`
-      : `[products] ${context} — database query failed; serving an EMPTY catalogue. The storefront is showing no products:`,
+    `[products] ${context} — database query failed; serving the placeholder catalog (development only):`,
     err,
   );
 }
@@ -209,7 +217,7 @@ export async function listAllProducts(): Promise<Product[]> {
     if (rows.length === 0) return placeholderCatalog();
     return rows.map((r) => rowToProduct(r, r.images));
   } catch (err) {
-    logDbFallback("listAllProducts", err);
+    handleDbError("listAllProducts", err);
     return placeholderCatalog();
   }
 }
@@ -234,7 +242,7 @@ export async function getProductsByCategory(
     }
     return rows.map((r) => rowToProduct(r, r.images));
   } catch (err) {
-    logDbFallback("getProductsByCategory", err);
+    handleDbError("getProductsByCategory", err);
     return placeholderCatalog().filter((p) => p.category === category);
   }
 }
@@ -258,7 +266,7 @@ export async function getProductBySlug(slug: string): Promise<Product | undefine
     if (!row) return placeholderCatalog().find((p) => p.slug === slug);
     return rowToProduct(row, row.images);
   } catch (err) {
-    logDbFallback("getProductBySlug", err);
+    handleDbError("getProductBySlug", err);
     return placeholderCatalog().find((p) => p.slug === slug);
   }
 }
