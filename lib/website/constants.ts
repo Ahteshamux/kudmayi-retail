@@ -41,6 +41,9 @@ export const INSTAGRAM_URL = `https://www.instagram.com/${INSTAGRAM_HANDLE}`;
 /** Public store location shown on the storefront. */
 export const STORE_ADDRESS = "Gulberg, M.M. Alam Road, Lahore";
 
+/** Same place, short enough for the phone-width announcement bar. */
+export const STORE_ADDRESS_SHORT = "M.M. Alam Road, Lahore";
+
 /** Opens the published address in Google Maps. */
 export const GOOGLE_MAPS_URL =
   "https://www.google.com/maps/place/KUDMAYI/@31.521113,74.351194,17z/data=!3m1!4b1!4m6!3m5!1s0x3919050038985707:0x395c85ba11d38c21!8m2!3d31.521113!4d74.351194!16s%2Fg%2F11xdfwg5f8";
