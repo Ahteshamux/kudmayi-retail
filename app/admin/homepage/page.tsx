@@ -98,6 +98,7 @@ export default async function HomepageAdminPage() {
                       alt: images[slot.key]?.alt ?? slot.fallback.alt,
                       tablet: images[slot.key]?.tablet,
                       mobile: images[slot.key]?.mobile,
+                      framing: images[slot.key]?.framing,
                     }}
                   />
                 ))}

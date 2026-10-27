@@ -1,4 +1,5 @@
 import { getImageProps } from "next/image";
+import { resolveFraming } from "@/lib/website/framing";
 import type { HomepageImage } from "@/lib/website/homepage-content";
 
 /**
@@ -59,7 +60,37 @@ export function ResponsiveSlotImage({
         />
       )}
       {/* eslint-disable-next-line jsx-a11y/alt-text -- alt comes from {...desktop.props} */}
-      <img {...desktop.props} className={className} />
+      <img
+        {...desktop.props}
+        // Only when the admin has set framing — otherwise the caller's own
+        // object-position (e.g. the hero's lg:object-top) stays in charge.
+        className={image.framing ? `${className} ${FRAMING_CLASSES}` : className}
+        style={image.framing ? { ...desktop.props.style, ...framingVars(image) } : desktop.props.style}
+      />
     </picture>
   );
+}
+
+/*
+ * Admin-set framing (focus point + zoom), one value per breakpoint. The
+ * <picture> above swaps the *file* per breakpoint but there is only one
+ * <img>, so the per-breakpoint position/zoom ride on CSS variables that
+ * these media-query classes pick between. Breakpoints match the <source>
+ * media queries: mobile < 640px, tablet 640–1023px, desktop ≥ 1024px.
+ * `transform` composes with Tailwind's hover `scale-*` (a separate
+ * property), so tile hover-zoom still works on top.
+ */
+const FRAMING_CLASSES =
+  "[object-position:var(--fp-m)] [transform-origin:var(--fp-m)] [transform:scale(var(--fz-m))] " +
+  "sm:[object-position:var(--fp-t)] sm:[transform-origin:var(--fp-t)] sm:[transform:scale(var(--fz-t))] " +
+  "lg:[object-position:var(--fp-d)] lg:[transform-origin:var(--fp-d)] lg:[transform:scale(var(--fz-d))]";
+
+function framingVars(image: HomepageImage): React.CSSProperties {
+  const vars: Record<string, string> = {};
+  for (const [bp, k] of [["mobile", "m"], ["tablet", "t"], ["desktop", "d"]] as const) {
+    const f = resolveFraming(image.framing, bp);
+    vars[`--fp-${k}`] = `${f.x}% ${f.y}%`;
+    vars[`--fz-${k}`] = String(f.zoom);
+  }
+  return vars as React.CSSProperties;
 }

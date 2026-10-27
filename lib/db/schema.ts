@@ -3,12 +3,14 @@ import {
   boolean,
   index,
   integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import type { SlotFraming } from "@/lib/website/framing";
 
 /**
  * The public storefront's real product catalog — separate from the
@@ -123,6 +125,8 @@ export const homepageImages = pgTable(
     imageUrl: text("image_url").notNull(),
     imageUrlTablet: text("image_url_tablet"),
     imageUrlMobile: text("image_url_mobile"),
+    // Admin-set focus point + zoom per breakpoint — see lib/website/framing.ts.
+    framing: jsonb("framing").$type<SlotFraming>(),
     altText: text("alt_text").notNull().default(""),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

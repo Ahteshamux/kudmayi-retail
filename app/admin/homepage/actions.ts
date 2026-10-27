@@ -8,6 +8,7 @@ import { getDb } from "@/lib/db/client";
 import { homepageImages, homepageText } from "@/lib/db/schema";
 import { HOMEPAGE_IMAGE_SLOT_KEYS } from "@/lib/website/homepage-slots";
 import { HOMEPAGE_TEXT_SLOT_KEYS } from "@/lib/website/homepage-text";
+import { parseFraming } from "@/lib/website/framing";
 
 const COLUMN_FOR = {
   desktop: "imageUrl",
@@ -135,6 +136,53 @@ export async function saveHomepageText(
     } else {
       await db.insert(homepageText).values({ slotKey, value: trimmed });
     }
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Something went wrong." };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin/homepage");
+  return { error: null };
+}
+
+/**
+ * Saves one breakpoint's framing (focus point + zoom) for a homepage photo.
+ * `framing` of null resets that breakpoint to centred, no zoom. Needs the
+ * slot to have an uploaded photo already — framing belongs to a photo.
+ */
+export async function saveHomepageFraming(
+  slotKey: string,
+  breakpoint: string,
+  framing: unknown,
+): Promise<{ error: string | null }> {
+  const denied = await unauthorizedState();
+  if (denied) return denied;
+
+  if (!HOMEPAGE_IMAGE_SLOT_KEYS.has(slotKey)) return { error: "Unknown homepage slot." };
+  if (!isBreakpoint(breakpoint)) return { error: "Unknown screen size." };
+  const parsed = framing === null ? null : parseFraming(framing);
+  if (framing !== null && !parsed) return { error: "Invalid framing." };
+
+  const db = getDb();
+  if (!db) return { error: "The database isn't connected yet." };
+
+  try {
+    const existing = await db.query.homepageImages.findFirst({
+      where: eq(homepageImages.slotKey, slotKey),
+    });
+    if (!existing) {
+      return { error: "Upload a photo for this slot first, then adjust its framing." };
+    }
+    const next = { ...(existing.framing ?? {}) };
+    if (parsed) next[breakpoint] = parsed;
+    else delete next[breakpoint];
+    await db
+      .update(homepageImages)
+      .set({
+        framing: Object.keys(next).length > 0 ? next : null,
+        updatedAt: new Date(),
+      })
+      .where(eq(homepageImages.slotKey, slotKey));
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Something went wrong." };
   }

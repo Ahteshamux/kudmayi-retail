@@ -1,3 +1,4 @@
+import type { SlotFraming } from "./framing";
 import { getDb } from "@/lib/db/client";
 import { homepageImages, homepageText } from "@/lib/db/schema";
 import { HOMEPAGE_IMAGE_SLOTS } from "./homepage-slots";
@@ -12,6 +13,8 @@ import type { PlaceholderImage } from "./placeholder-images";
 export type HomepageImage = PlaceholderImage & {
   tablet?: string;
   mobile?: string;
+  /** Admin-set focus point + zoom per breakpoint (lib/website/framing.ts). */
+  framing?: SlotFraming;
 };
 
 export type HomepageImages = Record<string, HomepageImage>;
@@ -55,6 +58,7 @@ export async function getAllHomepageImages(): Promise<HomepageImages> {
           alt: row.altText || images[row.slotKey].alt,
           tablet: row.imageUrlTablet ?? undefined,
           mobile: row.imageUrlMobile ?? undefined,
+          framing: row.framing ?? undefined,
         };
       }
     }

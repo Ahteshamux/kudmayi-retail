@@ -199,6 +199,9 @@ create policy "authenticated can delete homepage images"
 -- homepage crops existed.
 alter table public.homepage_images add column if not exists image_url_tablet text;
 alter table public.homepage_images add column if not exists image_url_mobile text;
+-- Admin-set framing per breakpoint: {"desktop":{"x":50,"y":20,"zoom":1.2},…}
+-- x/y = focus point in % of the photo, zoom 1–2. Null = centred, no zoom.
+alter table public.homepage_images add column if not exists framing jsonb;
 
 -- ---------------------------------------------------------------------------
 -- homepage_text: admin-editable homepage copy (section headings so far),

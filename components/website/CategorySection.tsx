@@ -67,10 +67,9 @@ function CategoryTile({
       <ResponsiveSlotImage
         image={image}
         sizes="(max-width: 767px) 82vw, (max-width: 1023px) 25vw, 20vw"
-        // object-top: these are portrait model shots in tiles that are wider
-        // than the photo (the small desktop tiles are near-square), so a
-        // centred crop cut off the head. Anchoring to the top keeps it.
-        className="absolute inset-0 h-full w-full object-cover object-top origin-top transition-transform duration-700 group-hover:scale-105"
+        // Crop position and zoom come from the admin's framing controls
+        // (Admin → Homepage), applied inside ResponsiveSlotImage.
+        className="absolute inset-0 h-full w-full object-cover transition-[scale] duration-700 group-hover:scale-105"
       />
       <span className="u-caps bg-black/25 text-parchment absolute bottom-4 left-4 px-3 py-1.5">
         {category.label}
