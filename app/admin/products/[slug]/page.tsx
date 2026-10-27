@@ -1,3 +1,4 @@
+import { loadGroomEditSlots } from "@/lib/website/groom-edit-slots";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { updateProduct } from "../actions";
@@ -70,6 +71,7 @@ export default async function EditProductPage({
             sizes: row.sizes,
             tags: row.tags,
             featured: row.featured,
+            featuredPosition: row.featuredPosition,
             image: row.images[0]
               ? { src: row.images[0].publicUrl, alt: row.images[0].altText }
               : { src: "", alt: "" },
@@ -82,6 +84,7 @@ export default async function EditProductPage({
               altText: img.altText,
             })),
           }}
+          groomEditSlots={await loadGroomEditSlots()}
           submitLabel="Save changes"
           cancelHref="/admin/products"
         />

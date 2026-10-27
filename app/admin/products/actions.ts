@@ -2,7 +2,7 @@
 
 import { requireUser, unauthorizedState } from "@/lib/supabase/require-user";
 
-import { eq, like, or } from "drizzle-orm";
+import { and, eq, like, ne, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDb } from "@/lib/db/client";
@@ -15,6 +15,7 @@ import {
   type ImageInput,
 } from "@/lib/website/admin-products-shared";
 import { BLOG_PROTECTED_IMAGE_URLS } from "@/lib/website/blog";
+import { GROOM_EDIT_LIMIT } from "@/lib/website/constants";
 import {
   isShopCategorySlug,
   type ShopCategorySlug,
@@ -34,6 +35,7 @@ type ParsedProduct = {
   sizes: string[];
   tags: string[];
   featured: boolean;
+  featuredPosition: number | null;
   images: ImageInput[];
 };
 
@@ -82,6 +84,13 @@ function parseForm(formData: FormData): ParsedProduct | string {
   const sizes = parseStringList(formData.get("sizes"));
   const tags = parseStringList(formData.get("tags"));
   const featured = formData.get("featured") === "on";
+  const positionRaw = String(formData.get("featuredPosition") ?? "");
+  const position = Number(positionRaw);
+  // A slot only means something while the piece is featured.
+  const featuredPosition =
+    featured && Number.isInteger(position) && position >= 1 && position <= GROOM_EDIT_LIMIT
+      ? position
+      : null;
   const images = parseImages(formData.get("images"));
 
   if (!name) return "Give the piece a name.";
@@ -119,6 +128,7 @@ function parseForm(formData: FormData): ParsedProduct | string {
     sizes,
     tags,
     featured,
+    featuredPosition,
     images,
   };
 }
@@ -199,6 +209,25 @@ async function adoptBorrowedImages(
 }
 
 type Db = NonNullable<ReturnType<typeof getDb>>;
+type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
+
+/**
+ * One piece per Groom Edit slot: whoever held the chosen number moves to
+ * "Auto" (the form says so next to the picker). Runs inside the save's
+ * transaction so the hand-over is all-or-nothing.
+ */
+async function freeGroomEditSlot(tx: Tx, position: number | null, exceptId?: string) {
+  if (position === null) return;
+  await tx
+    .update(storefrontProducts)
+    .set({ featuredPosition: null })
+    .where(
+      and(
+        eq(storefrontProducts.featuredPosition, position),
+        exceptId ? ne(storefrontProducts.id, exceptId) : undefined,
+      ),
+    );
+}
 
 /**
  * Two pieces can share a name, but not a URL. If the slug is taken, append
@@ -264,6 +293,7 @@ export async function createProduct(
     // not at all. Previously a failed image insert left a published
     // product with no photos, which renders as a broken <Image src="">.
     await db.transaction(async (tx) => {
+      await freeGroomEditSlot(tx, parsed.featuredPosition);
       const [row] = await tx
         .insert(storefrontProducts)
         .values({
@@ -280,6 +310,7 @@ export async function createProduct(
           sizes: parsed.sizes,
           tags: parsed.tags,
           featured: parsed.featured,
+          featuredPosition: parsed.featuredPosition,
           retailProductId,
         })
         .returning();
@@ -338,6 +369,7 @@ export async function updateProduct(
     // failed insert would leave the product with NO images — destroying
     // the existing gallery rather than merely failing the edit.
     await db.transaction(async (tx) => {
+      await freeGroomEditSlot(tx, parsed.featuredPosition, id);
       await tx
         .update(storefrontProducts)
         .set({
@@ -354,6 +386,7 @@ export async function updateProduct(
           sizes: parsed.sizes,
           tags: parsed.tags,
           featured: parsed.featured,
+          featuredPosition: parsed.featuredPosition,
           updatedAt: new Date(),
         })
         .where(eq(storefrontProducts.id, id));

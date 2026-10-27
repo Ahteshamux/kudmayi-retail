@@ -5,7 +5,7 @@ import { startTransition, useActionState, useCallback, useState } from "react";
 import { ColorFromPhoto } from "./ColorFromPhoto";
 import { ProductImagesUploader } from "./ProductImagesUploader";
 import { slugify, type ActionState, type ImageInput } from "@/lib/website/admin-products-shared";
-import { SITE_HOST } from "@/lib/website/constants";
+import { GROOM_EDIT_LIMIT, SITE_HOST } from "@/lib/website/constants";
 import { SHOP_CATEGORIES } from "@/lib/website/categories";
 import type { Product } from "@/lib/website/products";
 
@@ -25,6 +25,9 @@ function SubmitButton({
   );
 }
 
+/** A piece currently holding a fixed Groom Edit slot. */
+export type GroomEditSlot = { position: number; slug: string; name: string };
+
 type Prefill = {
   name?: string;
   category?: string;
@@ -38,6 +41,7 @@ export function ProductForm({
   prefill,
   defaultCategory,
   retailProductId,
+  groomEditSlots = [],
   submitLabel,
   cancelHref,
 }: {
@@ -51,6 +55,8 @@ export function ProductForm({
   /** The Retail item a new listing is published from — stored so a second
    *  publish of the same item opens this listing instead. */
   retailProductId?: string;
+  /** Who holds each fixed Groom Edit slot, for the position picker. */
+  groomEditSlots?: GroomEditSlot[];
   submitLabel: string;
   cancelHref: string;
 }) {
@@ -58,6 +64,7 @@ export function ProductForm({
     error: null,
   });
   const [uploading, setUploading] = useState(false);
+  const [featured, setFeatured] = useState(product?.featured ?? false);
   const [name, setName] = useState(product?.name ?? prefill?.name ?? "");
   const [slug, setSlug] = useState(product?.slug ?? (prefill?.name ? slugify(prefill.name) : ""));
   const [slugTouched, setSlugTouched] = useState(Boolean(product));
@@ -331,12 +338,21 @@ export function ProductForm({
           <input
             type="checkbox"
             name="featured"
-            defaultChecked={product?.featured ?? false}
+            checked={featured}
+            onChange={(e) => setFeatured(e.target.checked)}
             className="accent-brass h-5 w-5"
           />
           <span className="u-caps text-espresso">Featured (Groom Edit)</span>
         </label>
       </div>
+
+      {featured && (
+        <GroomEditPosition
+          current={product?.featuredPosition ?? null}
+          slots={groomEditSlots}
+          selfSlug={product?.slug}
+        />
+      )}
 
       {state.error && (
         <p role="alert" className="text-rust text-sm">
@@ -351,5 +367,52 @@ export function ProductForm({
         </Link>
       </div>
     </form>
+  );
+}
+
+/**
+ * Picks this piece's slot in the homepage Groom Edit. Each option names
+ * the piece holding that slot now, so the admin can see the running order
+ * without leaving the form. Choosing a taken slot moves its holder to Auto
+ * (handled on save in app/admin/products/actions.ts).
+ */
+function GroomEditPosition({
+  current,
+  slots,
+  selfSlug,
+}: {
+  current: number | null;
+  slots: GroomEditSlot[];
+  selfSlug?: string;
+}) {
+  const holder = new Map(slots.map((s) => [s.position, s]));
+  return (
+    <div className="space-y-2">
+      <label htmlFor="featuredPosition" className="u-caps text-muted block">
+        Position in the Groom Edit
+      </label>
+      <select
+        id="featuredPosition"
+        name="featuredPosition"
+        defaultValue={current ?? ""}
+        className="u-field max-w-sm"
+      >
+        <option value="">Auto — fills a free spot, newest first</option>
+        {Array.from({ length: GROOM_EDIT_LIMIT }, (_, i) => i + 1).map((n) => {
+          const taken = holder.get(n);
+          const label =
+            !taken || taken.slug === selfSlug ? `${n}` : `${n} — now ${taken.name}`;
+          return (
+            <option key={n} value={n}>
+              {label}
+            </option>
+          );
+        })}
+      </select>
+      <p className="text-muted text-xs">
+        The homepage shows {GROOM_EDIT_LIMIT} featured pieces, 4 per row. Picking a number
+        another piece has moves that piece to Auto.
+      </p>
+    </div>
   );
 }

@@ -1,24 +1,32 @@
+import { GROOM_EDIT_LIMIT } from "./constants";
 import { listAllProducts, type Product } from "./products";
-
-/** How many pieces the homepage rail shows. */
-const GROOM_EDIT_LIMIT = 6;
 
 /**
  * "The Groom Edit" — driven by the admin's "Featured (Groom Edit)" toggle
  * (`featured` on storefront_products), not a hardcoded slug list.
  *
- * It used to be a fixed list of six *placeholder* slugs. That had two
- * faults: the admin toggle was saved but silently ignored, and — worse —
- * once real products replaced the placeholders none of those slugs would
- * resolve, so the homepage's featured rail would quietly render empty.
- *
- * Falling back to the newest pieces when nothing is flagged keeps the rail
- * populated on a fresh catalogue, so the homepage never ships a blank
- * section while the shop is still being set up.
+ * Order: pieces given a fixed position (1–8) take that slot; "Auto" pieces
+ * fill the remaining slots, newest first. Falling back to the newest pieces
+ * when nothing is flagged keeps the rail populated on a fresh catalogue, so
+ * the homepage never ships a blank section while the shop is being set up.
  */
 export async function getFeaturedProducts(): Promise<Product[]> {
-  const all = await listAllProducts();
+  const all = await listAllProducts(); // newest first
   const flagged = all.filter((p) => p.featured);
-  const chosen = flagged.length > 0 ? flagged : all;
-  return chosen.slice(0, GROOM_EDIT_LIMIT);
+  if (flagged.length === 0) return all.slice(0, GROOM_EDIT_LIMIT);
+
+  const slots: (Product | undefined)[] = new Array(GROOM_EDIT_LIMIT);
+  const auto: Product[] = [];
+  for (const product of flagged) {
+    const pos = product.featuredPosition;
+    if (pos && pos >= 1 && pos <= GROOM_EDIT_LIMIT && !slots[pos - 1]) {
+      slots[pos - 1] = product;
+    } else {
+      auto.push(product);
+    }
+  }
+  for (let i = 0; i < GROOM_EDIT_LIMIT && auto.length > 0; i++) {
+    if (!slots[i]) slots[i] = auto.shift();
+  }
+  return slots.filter((p): p is Product => Boolean(p));
 }

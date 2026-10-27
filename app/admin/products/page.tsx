@@ -4,6 +4,8 @@ import { DeleteProductButton } from "@/components/admin/DeleteProductButton";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { getDb } from "@/lib/db/client";
 import { SHOP_CATEGORIES, type ShopCategorySlug } from "@/lib/website/categories";
+import { GROOM_EDIT_LIMIT } from "@/lib/website/constants";
+import { getFeaturedProducts } from "@/lib/website/featured-products";
 import { formatPKR } from "@/lib/website/format";
 import type { StorefrontProductImageRow, StorefrontProductRow } from "@/lib/db/schema";
 
@@ -30,6 +32,10 @@ export default async function ProductsAdminPage() {
     orderBy: (p, { desc }) => [desc(p.createdAt)],
   });
 
+  // Exactly what the homepage shows, in its order (see featured-products.ts).
+  const groomEdit = await getFeaturedProducts();
+  const anyFeatured = products.some((p) => p.featured && p.published);
+
   const byCategory = new Map<ShopCategorySlug, ProductWithImages[]>(
     SHOP_CATEGORIES.map((c) => [c.slug, []]),
   );
@@ -52,6 +58,36 @@ export default async function ProductsAdminPage() {
             Add Product
           </Link>
         </div>
+
+        <section className="border-line bg-surface mb-12 border p-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="u-caps text-espresso">
+              Homepage Groom Edit · {anyFeatured ? groomEdit.length : 0} of {GROOM_EDIT_LIMIT}
+            </h2>
+            <p className="text-muted text-xs">
+              Tick &ldquo;Featured&rdquo; on a product and pick its position to change this.
+            </p>
+          </div>
+          {anyFeatured ? (
+            <ol className="mt-4 grid gap-x-6 gap-y-1.5 text-sm sm:grid-cols-2">
+              {groomEdit.map((p, i) => (
+                <li key={p.slug} className="flex gap-3">
+                  <span className="text-muted w-5 shrink-0 tabular-nums">{i + 1}.</span>
+                  <Link href={`/admin/products/${p.slug}`} className="hover:text-brass-deep truncate">
+                    {p.name}
+                  </Link>
+                  <span className="text-muted shrink-0 text-xs">
+                    {p.featuredPosition ? "fixed" : "auto"}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="text-muted mt-3 text-sm">
+              Nothing is featured, so the homepage shows the newest pieces.
+            </p>
+          )}
+        </section>
 
         <div className="space-y-12">
           {SHOP_CATEGORIES.map((category) => {
@@ -104,7 +140,10 @@ function ProductRow({ product }: { product: ProductWithImages }) {
         <p className="text-muted text-sm">
           {formatPKR(product.priceRupees)}
           {!product.published && " · Unpublished"}
-          {product.featured && " · Featured"}
+          {product.featured &&
+            (product.featuredPosition
+              ? ` · Groom Edit #${product.featuredPosition}`
+              : " · Groom Edit (auto)")}
         </p>
       </div>
 

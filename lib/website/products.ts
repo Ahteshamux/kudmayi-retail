@@ -34,6 +34,8 @@ export type Product = {
   /** Admin's "Featured (Groom Edit)" toggle — drives the homepage rail.
    *  See lib/website/featured-products.ts. */
   featured: boolean;
+  /** Fixed Groom Edit slot (1–8), or null for automatic order. */
+  featuredPosition: number | null;
   image: PlaceholderImage;
   hoverImage: PlaceholderImage;
 };
@@ -45,7 +47,7 @@ export type Product = {
  * unreachable. The public site never 500s over this; see getDb()'s doc
  * comment for the reasoning.
  */
-const RAW: Omit<Product, "hoverImage" | "description" | "sizes" | "salePriceRupees" | "tags" | "featured" | "storePickup">[] = [
+const RAW: Omit<Product, "hoverImage" | "description" | "sizes" | "salePriceRupees" | "tags" | "featured" | "featuredPosition" | "storePickup">[] = [
   // Sherwanis
   { slug: "ivory-embroidered-sherwani", name: "Ivory Embroidered Sherwani", category: "sherwanis", priceRupees: 145000, readyToShip: true, colorName: "Ivory", colorHex: "#f3ecdf", image: { src: unsplash("1759906766080-82b785c61f51", 900), alt: "Groom in traditional Indian wedding sherwani" } },
   { slug: "pearl-zardozi-sherwani", name: "Pearl Zardozi Sherwani", category: "sherwanis", priceRupees: 152000, readyToShip: false, colorName: "Pearl", colorHex: "#ede6d6", image: { src: unsplash("1729347917808-e3e35a462fec", 900), alt: "Man in a white embroidered sherwani" } },
@@ -122,6 +124,7 @@ export const PLACEHOLDER_PRODUCTS: Product[] = RAW.map((product) => {
     salePriceRupees: null,
     tags: [],
     featured: PLACEHOLDER_FEATURED_SLUGS.has(product.slug),
+    featuredPosition: null,
     storePickup: false,
     hoverImage: next.image,
   };
@@ -169,6 +172,7 @@ function rowToProduct(
     sizes: row.sizes,
     tags: row.tags,
     featured: row.featured,
+    featuredPosition: row.featuredPosition,
     image: { src: cover?.publicUrl ?? "", alt: cover?.altText || row.name },
     hoverImage: { src: hover?.publicUrl ?? "", alt: hover?.altText || row.name },
   };

@@ -42,6 +42,11 @@ alter table public.storefront_products add column if not exists store_pickup boo
 -- from, so publishing the same item twice opens the existing listing
 -- instead of creating a duplicate. No FK: the two stay independent.
 alter table public.storefront_products add column if not exists retail_product_id uuid;
+-- Groom Edit slot (1–8) for featured pieces; null = automatic order.
+alter table public.storefront_products add column if not exists featured_position integer;
+alter table public.storefront_products drop constraint if exists storefront_products_featured_position_check;
+alter table public.storefront_products add constraint storefront_products_featured_position_check
+  check (featured_position is null or featured_position between 1 and 8);
 create unique index if not exists storefront_products_retail_product_idx
   on public.storefront_products (retail_product_id) where retail_product_id is not null;
 alter table public.storefront_products drop constraint if exists storefront_products_sale_price_check;

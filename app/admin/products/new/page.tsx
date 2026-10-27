@@ -1,3 +1,4 @@
+import { loadGroomEditSlots } from "@/lib/website/groom-edit-slots";
 import { eq, ilike } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -111,6 +112,7 @@ export default async function NewProductPage({
           action={createProduct}
           prefill={prefill ?? undefined}
           retailProductId={prefill ? (retailId ?? undefined) : undefined}
+          groomEditSlots={await loadGroomEditSlots()}
           defaultCategory={defaultCategory}
           submitLabel="Save product"
           cancelHref="/admin/products"

@@ -44,6 +44,10 @@ export const storefrontProducts = pgTable(
     // as small badges. Distinct from the Ready to Ship badge.
     tags: text("tags").array().notNull().default([]),
     featured: boolean("featured").notNull().default(false),
+    // 1–8: the piece's fixed slot in the homepage Groom Edit. Null = "Auto"
+    // (fills the remaining slots, newest first). Only meaningful while
+    // `featured` is on; app/admin/products/actions.ts keeps it unique.
+    featuredPosition: integer("featured_position"),
     published: boolean("published").notNull().default(true),
     // Set when published from a Retail catalog item (public.products) —
     // see app/admin/products/new/page.tsx. Null for pieces added directly.
