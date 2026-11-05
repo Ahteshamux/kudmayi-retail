@@ -38,6 +38,16 @@ export const CONTACT_EMAIL = "hello@kudmayi.pk";
 export const INSTAGRAM_HANDLE = "kudmayi.official";
 export const INSTAGRAM_URL = `https://www.instagram.com/${INSTAGRAM_HANDLE}`;
 
+/** Set to the profile URL to show TikTok on /visit; null hides the button. */
+export const TIKTOK_URL: string | null = null;
+
+/**
+ * Where "Leave a Google review" goes. Until the profile's direct review link
+ * (Google Business Profile → "Ask for reviews") is pasted here, it opens the
+ * Maps listing, which has its own "Write a review" button.
+ */
+export const GOOGLE_REVIEW_URL: string | null = null;
+
 /** Public store location shown on the storefront. */
 export const STORE_ADDRESS = "Gulberg, M.M. Alam Road, Lahore";
 
