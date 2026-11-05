@@ -67,7 +67,7 @@ export default function VisitPage() {
       icon: <InstagramIcon />,
     },
     ...(TIKTOK_URL
-      ? [{ label: "Follow on TikTok", hint: "Fittings and new pieces", href: TIKTOK_URL, icon: <TikTokIcon /> }]
+      ? [{ label: "Follow on TikTok", hint: "@kudmayi.official", href: TIKTOK_URL, icon: <TikTokIcon /> }]
       : []),
     {
       label: "Shop online",

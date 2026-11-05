@@ -39,7 +39,7 @@ export const INSTAGRAM_HANDLE = "kudmayi.official";
 export const INSTAGRAM_URL = `https://www.instagram.com/${INSTAGRAM_HANDLE}`;
 
 /** Set to the profile URL to show TikTok on /visit; null hides the button. */
-export const TIKTOK_URL: string | null = null;
+export const TIKTOK_URL: string | null = "https://www.tiktok.com/@kudmayi.official";
 
 /**
  * Where "Leave a Google review" goes. Until the profile's direct review link
