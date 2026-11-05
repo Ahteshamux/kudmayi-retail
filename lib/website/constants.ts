@@ -46,7 +46,7 @@ export const TIKTOK_URL: string | null = null;
  * (Google Business Profile → "Ask for reviews") is pasted here, it opens the
  * Maps listing, which has its own "Write a review" button.
  */
-export const GOOGLE_REVIEW_URL: string | null = null;
+export const GOOGLE_REVIEW_URL: string | null = "https://g.page/r/CSGM0xG6hVw5EBM/review";
 
 /** Public store location shown on the storefront. */
 export const STORE_ADDRESS = "Gulberg, M.M. Alam Road, Lahore";
