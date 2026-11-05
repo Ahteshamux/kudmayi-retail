@@ -19,7 +19,7 @@ import { whatsAppLink } from "@/lib/website/whatsapp";
  * - Full-width rows, 64px tall, in the lower, thumb-reachable part of the
  *   screen (Fitts's law).
  * - The ask that matters most in the moment, a Google review, is the only
- *   filled button (Von Restorff); the rest are quiet rows.
+ *   tinted row (Von Restorff); WhatsApp gets a small "Chat now" pill.
  *
  * Outside the (website) route group on purpose, so it doesn't inherit the
  * storefront chrome. Revalidates hourly rather than being fully static —
@@ -43,6 +43,8 @@ type LinkItem = {
   href: string;
   icon: React.ReactNode;
   primary?: boolean;
+  /** Small pill beside the label, to draw the eye to one row. */
+  badge?: string;
 };
 
 export default function VisitPage() {
@@ -57,6 +59,7 @@ export default function VisitPage() {
     {
       label: "Message us on WhatsApp",
       hint: "Sizes, prices, fittings",
+      badge: "Chat now",
       href: whatsAppLink("Hi Kudmayi, I just visited your store."),
       icon: <WhatsAppLogo />,
     },
@@ -104,7 +107,7 @@ export default function VisitPage() {
                     {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                     className={`flex min-h-16 items-center gap-4 border px-4 py-3 transition-colors active:scale-[0.99] ${
                       link.primary
-                        ? "bg-bark text-parchment border-bark hover:bg-espresso"
+                        ? "bg-sand border-brass hover:border-brass-deep"
                         : "bg-surface border-line hover:border-brass-deep"
                     }`}
                   >
@@ -112,14 +115,20 @@ export default function VisitPage() {
                       {link.icon}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block font-medium">{link.label}</span>
-                      <span
-                        className={`block truncate text-sm ${link.primary ? "text-parchment/75" : "text-muted"}`}
-                      >
+                      <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="font-medium">{link.label}</span>
+                        {link.badge && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#25D366]/15 px-2 py-0.5 text-[0.6875rem] font-medium text-[#0f7a3a]">
+                            <span aria-hidden className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#25D366]" />
+                            {link.badge}
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-muted block truncate text-sm">
                         {link.hint}
                       </span>
                     </span>
-                    <span aria-hidden className={link.primary ? "text-parchment/75" : "text-muted"}>
+                    <span aria-hidden className={link.primary ? "text-brass-deep" : "text-muted"}>
                       &rarr;
                     </span>
                   </a>
