@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { AppHeader } from "@/components/AppHeader";
 import { SectionLabel } from "@/components/SectionLabel";
-import { CATEGORIES } from "@/lib/categories";
+import { ACCESSORY_SLUGS, CATEGORIES, RETAIL_ACCESSORIES_HREF } from "@/lib/categories";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  // Four head-only count queries in parallel. The payload stays constant no
+  // Head-only count queries in parallel. The payload stays constant no
   // matter how big the catalog gets — pulling every row back just to count
   // them would grow the home screen's load time with the collection.
   //
@@ -36,6 +36,22 @@ export default async function HomePage() {
 
   const total = [...counts.values()].reduce((sum, n) => sum + n, 0);
 
+  // Turbans and footwear sit behind a single Accessories button.
+  const buttons = [
+    ...CATEGORIES.filter((c) => !ACCESSORY_SLUGS.includes(c.slug)).map((c) => ({
+      key: c.slug as string,
+      label: c.label as string,
+      href: `/admin/catalog/category/${c.slug}`,
+      count: counts.get(c.slug) ?? 0,
+    })),
+    {
+      key: "accessories",
+      label: "Accessories",
+      href: RETAIL_ACCESSORIES_HREF,
+      count: ACCESSORY_SLUGS.reduce((sum, slug) => sum + (counts.get(slug) ?? 0), 0),
+    },
+  ];
+
   return (
     <>
       <AppHeader />
@@ -57,12 +73,12 @@ export default async function HomePage() {
         )}
 
         <div className="grid gap-px sm:grid-cols-2">
-          {CATEGORIES.map((category) => {
-            const count = counts.get(category.slug) ?? 0;
+          {buttons.map((category) => {
+            const count = category.count;
             return (
               <Link
-                key={category.slug}
-                href={`/admin/catalog/category/${category.slug}`}
+                key={category.key}
+                href={category.href}
                 className="group border-line hover:border-brass hover:bg-surface border p-7 transition-colors sm:p-9"
               >
                 <SectionLabel>

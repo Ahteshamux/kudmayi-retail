@@ -16,7 +16,7 @@ create table if not exists public.storefront_products (
   slug              text        not null unique,
   name              text        not null,
   category          text        not null check (
-    category in ('sherwanis', 'prince-coats', 'waistcoats', 'kurtas', 'suits')
+    category in ('sherwanis', 'prince-coats', 'waistcoats', 'kurtas', 'suits', 'sarbala', 'turbans', 'groom-footwear')
   ),
   price_rupees      integer     not null check (price_rupees >= 0),
   sale_price_rupees integer,
@@ -42,6 +42,10 @@ alter table public.storefront_products add column if not exists store_pickup boo
 -- from, so publishing the same item twice opens the existing listing
 -- instead of creating a duplicate. No FK: the two stay independent.
 alter table public.storefront_products add column if not exists retail_product_id uuid;
+-- Sarbala and accessories (turbans, groom footwear) joined the category list later.
+alter table public.storefront_products drop constraint if exists storefront_products_category_check;
+alter table public.storefront_products add constraint storefront_products_category_check
+  check (category in ('sherwanis', 'prince-coats', 'waistcoats', 'kurtas', 'suits', 'sarbala', 'turbans', 'groom-footwear'));
 -- Groom Edit slot (1–8) for featured pieces; null = automatic order.
 alter table public.storefront_products add column if not exists featured_position integer;
 alter table public.storefront_products drop constraint if exists storefront_products_featured_position_check;
@@ -154,6 +158,30 @@ create policy "authenticated can update storefront images"
 create policy "authenticated can delete storefront images"
   on storage.objects for delete to authenticated
   using (bucket_id = 'storefront-products');
+
+-- ---------------------------------------------------------------------------
+-- "Complete the look": which pieces are offered alongside a product (the
+-- turban, footwear and sarbala outfit that go with a sherwani).
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.storefront_product_addons (
+  product_id uuid not null references public.storefront_products(id) on delete cascade,
+  addon_product_id uuid not null references public.storefront_products(id) on delete cascade,
+  sort_order integer not null default 0,
+  primary key (product_id, addon_product_id),
+  check (product_id <> addon_product_id)
+);
+
+alter table public.storefront_product_addons enable row level security;
+
+drop policy if exists "public can read storefront product addons" on public.storefront_product_addons;
+drop policy if exists "authenticated can write storefront product addons" on public.storefront_product_addons;
+
+create policy "public can read storefront product addons"
+  on public.storefront_product_addons for select using (true);
+
+create policy "authenticated can write storefront product addons"
+  on public.storefront_product_addons for all to authenticated using (true) with check (true);
 
 -- ---------------------------------------------------------------------------
 -- Homepage image slots — hero, category tiles, editorial sections,

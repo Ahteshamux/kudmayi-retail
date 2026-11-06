@@ -10,6 +10,10 @@ function matches(product: Product, query: string): boolean {
     product.name,
     product.colorName,
     shopCategoryLabel(product.category),
+    // What people actually type for these.
+    product.category === "groom-footwear" ? "khussa khussay shoes" : "",
+    product.category === "sarbala" ? "sarbaala sirwala sarwala boy boys kids child" : "",
+    product.category === "turbans" ? "kulla pagri pagdi" : "",
     ...product.tags,
   ]
     .join(" ")

@@ -32,7 +32,7 @@ export function ShopListing({
   currentCategory,
 }: {
   products: Product[];
-  currentCategory: ShopCategorySlug;
+  currentCategory: ShopCategorySlug | "accessories";
 }) {
   const [readyToShipOnly, setReadyToShipOnly] = useState(false);
   const [selectedPriceBands, setSelectedPriceBands] = useState<string[]>([]);
@@ -48,7 +48,7 @@ export function ShopListing({
   const sizes = useMemo(() => {
     const all = new Set<string>();
     for (const p of products) {
-      for (const s of p.sizes.length > 0 ? p.sizes : sizesForCategory()) all.add(s);
+      for (const s of p.sizes.length > 0 ? p.sizes : sizesForCategory(p.category)) all.add(s);
     }
     return Array.from(all);
   }, [products]);
@@ -65,7 +65,7 @@ export function ShopListing({
     }
     if (selectedSizes.length > 0) {
       list = list.filter((p) => {
-        const productSizes = p.sizes.length > 0 ? p.sizes : sizesForCategory();
+        const productSizes = p.sizes.length > 0 ? p.sizes : sizesForCategory(p.category);
         return selectedSizes.some((s) => productSizes.includes(s));
       });
     }
@@ -106,7 +106,9 @@ export function ShopListing({
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-muted mt-16 text-center">No pieces match these filters.</p>
+        <p className="text-muted mt-16 text-center">
+          {products.length === 0 ? "New pieces coming soon." : "No pieces match these filters."}
+        </p>
       ) : (
         <div
           className={`mt-10 grid gap-x-5 gap-y-10 sm:gap-x-6 ${

@@ -66,3 +66,6 @@ export const GOOGLE_MAPS_URL =
  * without pulling in the database driver.
  */
 export const GROOM_EDIT_LIMIT = 8;
+
+/** Most add-ons one product can offer; more than this overwhelms the page. */
+export const MAX_ADDONS = 6;

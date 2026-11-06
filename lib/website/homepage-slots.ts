@@ -1,4 +1,4 @@
-import { SHOP_CATEGORIES } from "./categories";
+import { CLOTHING_CATEGORIES } from "./categories";
 import {
   BRAND_STORY_IMAGE,
   COLLECTIONS_STRIP_IMAGES,
@@ -83,7 +83,7 @@ export const HOMEPAGE_IMAGE_SLOTS: HomepageImageSlot[] = [
     fallback: HERO_IMAGE,
   },
 
-  ...SHOP_CATEGORIES.map((c): HomepageImageSlot => ({
+  ...CLOTHING_CATEGORIES.map((c): HomepageImageSlot => ({
     key: `category_${c.slug}`,
     section: "Shop by Category",
     label: c.label,
@@ -92,7 +92,7 @@ export const HOMEPAGE_IMAGE_SLOTS: HomepageImageSlot[] = [
       { breakpoint: "desktop" as const, label: "Desktop", recommended: "1440 × 1280", shape: "Slightly wide (9:8)" },
     ],
     note:
-      c.slug === SHOP_CATEGORIES[0].slug
+      c.slug === CLOTHING_CATEGORIES[0].slug
         ? "This one renders twice the size of the others — the large tile on the left."
         : undefined,
     fallback: CATEGORY_IMAGES[c.slug],

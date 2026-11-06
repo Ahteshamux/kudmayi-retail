@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/website/constants";
-import { SHOP_CATEGORIES } from "@/lib/website/categories";
+import { ACCESSORIES_HREF, SHOP_CATEGORIES } from "@/lib/website/categories";
 import { listAllProducts } from "@/lib/website/products";
 import { BLOG_POSTS } from "@/lib/website/blog";
 
@@ -59,8 +59,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  const categoryPages: MetadataRoute.Sitemap = SHOP_CATEGORIES.map((c) => ({
-    url: `${SITE_URL}/shop/${c.slug}`,
+  const categoryPages: MetadataRoute.Sitemap = [
+    ...SHOP_CATEGORIES.map((c) => `/shop/${c.slug}`),
+    ACCESSORIES_HREF,
+  ].map((path) => ({
+    url: `${SITE_URL}${path}`,
     lastModified: now,
     changeFrequency: "weekly" as const,
     priority: 0.9,

@@ -1,12 +1,19 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { startTransition, useActionState, useCallback, useState } from "react";
 import { ColorFromPhoto } from "./ColorFromPhoto";
 import { ProductImagesUploader } from "./ProductImagesUploader";
 import { slugify, type ActionState, type ImageInput } from "@/lib/website/admin-products-shared";
-import { GROOM_EDIT_LIMIT, SITE_HOST } from "@/lib/website/constants";
-import { SHOP_CATEGORIES } from "@/lib/website/categories";
+import { GROOM_EDIT_LIMIT, MAX_ADDONS, SITE_HOST } from "@/lib/website/constants";
+import { formatPKR } from "@/lib/website/format";
+import {
+  ACCESSORY_CATEGORIES,
+  ADDON_CATEGORIES,
+  CLOTHING_CATEGORIES,
+  SARBALA_CATEGORY,
+} from "@/lib/website/categories";
 import type { Product } from "@/lib/website/products";
 
 function SubmitButton({
@@ -25,6 +32,15 @@ function SubmitButton({
   );
 }
 
+/** A product that can be ticked as an add-on on another product. */
+export type AddonOption = {
+  id: string;
+  name: string;
+  category: string;
+  image: string | null;
+  priceRupees: number;
+};
+
 /** A piece currently holding a fixed Groom Edit slot. */
 export type GroomEditSlot = { position: number; slug: string; name: string };
 
@@ -42,6 +58,8 @@ export function ProductForm({
   defaultCategory,
   retailProductId,
   groomEditSlots = [],
+  addonOptions = [],
+  selectedAddonIds = [],
   submitLabel,
   cancelHref,
 }: {
@@ -57,6 +75,9 @@ export function ProductForm({
   retailProductId?: string;
   /** Who holds each fixed Groom Edit slot, for the position picker. */
   groomEditSlots?: GroomEditSlot[];
+  /** Everything offerable as an add-on, and what this product already has. */
+  addonOptions?: AddonOption[];
+  selectedAddonIds?: string[];
   submitLabel: string;
   cancelHref: string;
 }) {
@@ -159,11 +180,23 @@ export function ProductForm({
             <option value="" disabled>
               Choose one
             </option>
-            {SHOP_CATEGORIES.map((c) => (
-              <option key={c.slug} value={c.slug}>
-                {c.label}
-              </option>
-            ))}
+            <optgroup label="Clothing">
+              {CLOTHING_CATEGORIES.map((c) => (
+                <option key={c.slug} value={c.slug}>
+                  {c.label}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Kids">
+              <option value={SARBALA_CATEGORY.slug}>{SARBALA_CATEGORY.label}</option>
+            </optgroup>
+            <optgroup label="Accessories">
+              {ACCESSORY_CATEGORIES.map((c) => (
+                <option key={c.slug} value={c.slug}>
+                  {c.label}
+                </option>
+              ))}
+            </optgroup>
           </select>
         </div>
 
@@ -276,7 +309,7 @@ export function ProductForm({
           placeholder="S, M, L, XL, XXL"
           className="u-field"
         />
-        <p className="text-muted text-xs">Comma-separated. Leave blank to use S, M, L, XL, XXL.</p>
+        <p className="text-muted text-xs">Comma-separated. If blank: clothing uses S–XXL, sarbala uses ages 2–12, footwear uses 39–45, turbans show no size.</p>
       </div>
 
       <div className="space-y-2">
@@ -354,6 +387,11 @@ export function ProductForm({
         />
       )}
 
+      <AddonPicker
+        options={addonOptions.filter((o) => o.id !== product?.id)}
+        selected={selectedAddonIds}
+      />
+
       {state.error && (
         <p role="alert" className="text-rust text-sm">
           {state.error}
@@ -414,5 +452,63 @@ function GroomEditPosition({
         another piece has moves that piece to Auto.
       </p>
     </div>
+  );
+}
+
+/**
+ * Ticks which turbans, footwear and sarbala outfits are offered under "Complete
+ * the look" on this product's page. Plain checkboxes named `addonIds`; the
+ * save action replaces the product's list with whatever is ticked.
+ */
+function AddonPicker({ options, selected }: { options: AddonOption[]; selected: string[] }) {
+  return (
+    <fieldset className="space-y-3">
+      <legend className="u-caps text-muted">Complete the look (add-ons)</legend>
+      <p className="text-muted text-xs">
+        Tick up to {MAX_ADDONS} pieces to offer on this product&rsquo;s page, like the matching
+        turban, footwear and sarbala outfit.
+      </p>
+      {options.length === 0 ? (
+        <p className="text-muted text-sm">
+          Add a product under Sarbala, Turbans or Groom Footwear and it will appear here.
+        </p>
+      ) : (
+        ADDON_CATEGORIES.map((category) => {
+          const items = options.filter((o) => o.category === category.slug);
+          if (items.length === 0) return null;
+          return (
+            <div key={category.slug}>
+              <p className="text-espresso mb-1.5 text-sm font-medium">{category.label}</p>
+              <ul className="grid gap-2 sm:grid-cols-2">
+                {items.map((option) => (
+                  <li key={option.id}>
+                    <label className="border-line bg-surface has-checked:border-brass-deep flex cursor-pointer items-center gap-3 border p-2">
+                      <input
+                        type="checkbox"
+                        name="addonIds"
+                        value={option.id}
+                        defaultChecked={selected.includes(option.id)}
+                        className="accent-brass h-5 w-5 shrink-0"
+                      />
+                      <span className="bg-well relative h-14 w-10 shrink-0 overflow-hidden">
+                        {option.image && (
+                          <Image src={option.image} alt="" fill sizes="40px" className="object-cover" />
+                        )}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm">{option.name}</span>
+                        <span className="text-muted block text-xs">
+                          {formatPKR(option.priceRupees)}
+                        </span>
+                      </span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })
+      )}
+    </fieldset>
   );
 }

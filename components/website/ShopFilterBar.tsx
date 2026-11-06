@@ -37,7 +37,7 @@ export function ShopFilterBar({
   onDensityChange,
 }: {
   count: number;
-  currentCategory: ShopCategorySlug;
+  currentCategory: ShopCategorySlug | "accessories";
   colors: string[];
   sizes: string[];
   priceBands: { key: string; label: string }[];

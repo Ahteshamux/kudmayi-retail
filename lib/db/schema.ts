@@ -5,6 +5,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -81,6 +82,25 @@ export const storefrontProductImages = pgTable(
   (table) => [
     index("storefront_product_images_product_idx").on(table.productId, table.sortOrder),
   ],
+);
+
+/**
+ * "Complete the look": the pieces offered on a product's page — e.g. the
+ * turban, footwear and sarbala outfit that go with a sherwani. Set from the
+ * product's admin form; shown in components/website/ProductActions.tsx.
+ */
+export const storefrontProductAddons = pgTable(
+  "storefront_product_addons",
+  {
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => storefrontProducts.id, { onDelete: "cascade" }),
+    addonProductId: uuid("addon_product_id")
+      .notNull()
+      .references(() => storefrontProducts.id, { onDelete: "cascade" }),
+    sortOrder: integer("sort_order").notNull().default(0),
+  },
+  (table) => [primaryKey({ columns: [table.productId, table.addonProductId] })],
 );
 
 export const storefrontProductsRelations = relations(storefrontProducts, ({ many }) => ({

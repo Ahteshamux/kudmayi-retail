@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/website/Breadcrumb";
+import { AccessoryTabs } from "@/components/website/AccessoryTabs";
 import { ShopListing } from "@/components/website/ShopListing";
 import {
+  ACCESSORIES_HREF,
+  isAccessoryCategory,
   isShopCategorySlug,
   SHOP_CATEGORIES,
   shopCategoryLabel,
@@ -56,10 +59,12 @@ export default async function ShopCategoryPage({
 
   const label = shopCategoryLabel(category);
   const products = await getProductsByCategory(category);
+  const accessory = isAccessoryCategory(category);
 
   const breadcrumbItems = [
     { name: "Home", url: SITE_URL },
     { name: "Shop" },
+    ...(accessory ? [{ name: "Accessories", url: `${SITE_URL}${ACCESSORIES_HREF}` }] : []),
     { name: label },
   ];
 
@@ -69,9 +74,17 @@ export default async function ShopCategoryPage({
       <JsonLd data={itemListJsonLd(category, products)} />
 
       <div className="u-container pt-32 pb-24 sm:pt-40">
-        <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Shop" }, { label }]} />
+        <Breadcrumb
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Shop" },
+            ...(accessory ? [{ label: "Accessories", href: ACCESSORIES_HREF }] : []),
+            { label },
+          ]}
+        />
 
         <h1 className="font-display mt-6 text-4xl sm:text-5xl">{label}</h1>
+        {accessory && <AccessoryTabs current={category} />}
 
         <div className="mt-8">
           <ShopListing products={products} currentCategory={category} />

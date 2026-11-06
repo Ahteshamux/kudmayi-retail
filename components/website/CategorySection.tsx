@@ -1,7 +1,7 @@
 import { ResponsiveSlotImage } from "./ResponsiveSlotImage";
 import Link from "next/link";
 import { Reveal } from "./Reveal";
-import { SHOP_CATEGORIES, type ShopCategorySlug } from "@/lib/website/categories";
+import { CLOTHING_CATEGORIES, type ShopCategorySlug } from "@/lib/website/categories";
 import type { HomepageImages } from "@/lib/website/homepage-content";
 
 export function CategorySection({ images }: { images: HomepageImages }) {
@@ -20,11 +20,11 @@ export function CategorySection({ images }: { images: HomepageImages }) {
           2x2 block beside it. */}
       <div className="u-container hidden gap-2 md:grid md:h-[640px] md:grid-cols-4 md:grid-rows-2">
         <CategoryTile
-          category={SHOP_CATEGORIES[0]}
-          image={images[`category_${SHOP_CATEGORIES[0].slug}`]}
+          category={CLOTHING_CATEGORIES[0]}
+          image={images[`category_${CLOTHING_CATEGORIES[0].slug}`]}
           className="col-span-2 row-span-2"
         />
-        {SHOP_CATEGORIES.slice(1).map((category) => (
+        {CLOTHING_CATEGORIES.slice(1).map((category) => (
           <CategoryTile
             key={category.slug}
             category={category}
@@ -36,7 +36,7 @@ export function CategorySection({ images }: { images: HomepageImages }) {
       {/* Mobile: horizontal snap carousel — keeps the large-imagery feel
           instead of shrinking five cards into a column. */}
       <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 md:hidden">
-        {SHOP_CATEGORIES.map((category) => (
+        {CLOTHING_CATEGORIES.map((category) => (
           <div key={category.slug} className="min-w-[82%] shrink-0 snap-center">
             <CategoryTile
               category={category}

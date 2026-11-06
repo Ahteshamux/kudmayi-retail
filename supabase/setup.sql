@@ -9,7 +9,7 @@
 create table if not exists public.products (
   id         uuid        primary key default gen_random_uuid(),
   name       text        not null,
-  category   text        not null check (category in ('sherwani', 'waistcoat', 'prince-coat', 'suit')),
+  category   text        not null check (category in ('sherwani', 'waistcoat', 'prince-coat', 'suit', 'sarbala', 'turbans', 'groom-footwear')),
   color      text        not null,
   image_url  text,
   available  boolean     not null default true,
@@ -78,3 +78,8 @@ create policy "authenticated can update product images"
 create policy "authenticated can delete product images"
   on storage.objects for delete to authenticated
   using (bucket_id = 'product-images');
+
+-- Additive: safe to re-run on a database created before Sarbala and Accessories.
+alter table public.products drop constraint if exists products_category_check;
+alter table public.products add constraint products_category_check
+  check (category in ('sherwani', 'waistcoat', 'prince-coat', 'suit', 'sarbala', 'turbans', 'groom-footwear'));

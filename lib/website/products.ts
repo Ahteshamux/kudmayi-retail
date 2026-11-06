@@ -1,9 +1,10 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import type { ShopCategorySlug } from "./categories";
 import type { PlaceholderImage } from "./placeholder-images";
 import { getDb } from "@/lib/db/client";
 import type { StorefrontProductImageRow, StorefrontProductRow } from "@/lib/db/schema";
-import { storefrontProducts } from "@/lib/db/schema";
+import { storefrontProductAddons,
+  storefrontProducts } from "@/lib/db/schema";
 
 const UNSPLASH = "https://images.unsplash.com";
 function unsplash(photoId: string, width: number): string {
@@ -38,6 +39,9 @@ export type Product = {
   featuredPosition: number | null;
   image: PlaceholderImage;
   hoverImage: PlaceholderImage;
+  /** Every photo, in the admin's order, for the product page gallery. Unset
+   *  on placeholder products, which only have image + hoverImage. */
+  gallery?: PlaceholderImage[];
 };
 
 /**
@@ -175,6 +179,7 @@ function rowToProduct(
     featuredPosition: row.featuredPosition,
     image: { src: cover?.publicUrl ?? "", alt: cover?.altText || row.name },
     hoverImage: { src: hover?.publicUrl ?? "", alt: hover?.altText || row.name },
+    gallery: sorted.map((img) => ({ src: img.publicUrl, alt: img.altText || row.name })),
   };
 }
 
@@ -272,5 +277,37 @@ export async function getProductBySlug(slug: string): Promise<Product | undefine
   } catch (err) {
     handleDbError("getProductBySlug", err);
     return placeholderCatalog().find((p) => p.slug === slug);
+  }
+}
+
+/**
+ * The published "Complete the look" pieces for a product, in the admin's
+ * order. An optional extra, so a failure here returns nothing rather than
+ * taking the product page down with it.
+ */
+export async function getProductAddons(slug: string): Promise<Product[]> {
+  const db = getDb();
+  if (!db) return [];
+
+  try {
+    const links = await db
+      .select({ id: storefrontProductAddons.addonProductId })
+      .from(storefrontProductAddons)
+      .innerJoin(storefrontProducts, eq(storefrontProducts.id, storefrontProductAddons.productId))
+      .where(eq(storefrontProducts.slug, slug))
+      .orderBy(asc(storefrontProductAddons.sortOrder));
+    if (links.length === 0) return [];
+
+    const ids = links.map((l) => l.id);
+    const rows = await db.query.storefrontProducts.findMany({
+      where: and(inArray(storefrontProducts.id, ids), eq(storefrontProducts.published, true)),
+      with: { images: { orderBy: (i, { asc }) => [asc(i.sortOrder)] } },
+    });
+    return rows
+      .sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id))
+      .map((r) => rowToProduct(r, r.images));
+  } catch (err) {
+    console.error("[products] getProductAddons — database query failed:", err);
+    return [];
   }
 }

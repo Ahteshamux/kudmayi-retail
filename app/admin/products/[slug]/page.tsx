@@ -1,3 +1,4 @@
+import { loadAddonOptions, loadSelectedAddonIds } from "@/lib/website/addon-options";
 import { loadGroomEditSlots } from "@/lib/website/groom-edit-slots";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -85,6 +86,8 @@ export default async function EditProductPage({
             })),
           }}
           groomEditSlots={await loadGroomEditSlots()}
+          addonOptions={await loadAddonOptions()}
+          selectedAddonIds={await loadSelectedAddonIds(row.id)}
           submitLabel="Save changes"
           cancelHref="/admin/products"
         />

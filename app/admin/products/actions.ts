@@ -2,11 +2,15 @@
 
 import { requireUser, unauthorizedState } from "@/lib/supabase/require-user";
 
-import { and, eq, like, ne, or } from "drizzle-orm";
+import { and, eq, inArray, like, ne, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDb } from "@/lib/db/client";
-import { storefrontProductImages, storefrontProducts } from "@/lib/db/schema";
+import {
+  storefrontProductAddons,
+  storefrontProductImages,
+  storefrontProducts,
+} from "@/lib/db/schema";
 import { createClient } from "@/lib/supabase/server";
 import {
   STOREFRONT_BUCKET,
@@ -15,7 +19,7 @@ import {
   type ImageInput,
 } from "@/lib/website/admin-products-shared";
 import { BLOG_PROTECTED_IMAGE_URLS } from "@/lib/website/blog";
-import { GROOM_EDIT_LIMIT } from "@/lib/website/constants";
+import { GROOM_EDIT_LIMIT, MAX_ADDONS } from "@/lib/website/constants";
 import {
   isShopCategorySlug,
   type ShopCategorySlug,
@@ -36,6 +40,7 @@ type ParsedProduct = {
   tags: string[];
   featured: boolean;
   featuredPosition: number | null;
+  addonIds: string[];
   images: ImageInput[];
 };
 
@@ -112,6 +117,11 @@ function parseForm(formData: FormData): ParsedProduct | string {
   if (!/^#[0-9a-fA-F]{6}$/.test(colorHex))
     return "Colour swatch must be a hex value like #171410.";
   if (images.length === 0) return "Add at least one photo.";
+  const addonIds = formData
+    .getAll("addonIds")
+    .map(String)
+    .filter((id) => /^[0-9a-f-]{36}$/i.test(id));
+  if (addonIds.length > MAX_ADDONS) return `Pick up to ${MAX_ADDONS} add-ons.`;
 
   return {
     slug,
@@ -129,6 +139,7 @@ function parseForm(formData: FormData): ParsedProduct | string {
     tags,
     featured,
     featuredPosition,
+    addonIds,
     images,
   };
 }
@@ -136,6 +147,7 @@ function parseForm(formData: FormData): ParsedProduct | string {
 function revalidateFor(category: ShopCategorySlug, slug?: string) {
   revalidatePath("/admin/products");
   revalidatePath(`/shop/${category}`);
+  revalidatePath("/shop/accessories");
   if (slug) revalidatePath(`/product/${slug}`);
   revalidatePath("/"); // featured products / category tiles can be affected
 }
@@ -210,6 +222,26 @@ async function adoptBorrowedImages(
 
 type Db = NonNullable<ReturnType<typeof getDb>>;
 type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
+
+/**
+ * Replaces a product's add-on list with what was ticked. Ids are checked
+ * against live rows first, so a piece deleted in another tab is dropped
+ * rather than failing the whole save on its foreign key.
+ */
+async function saveAddons(tx: Tx, productId: string, addonIds: string[]) {
+  await tx.delete(storefrontProductAddons).where(eq(storefrontProductAddons.productId, productId));
+  const wanted = addonIds.filter((id) => id !== productId);
+  if (wanted.length === 0) return;
+  const existing = await tx
+    .select({ id: storefrontProducts.id })
+    .from(storefrontProducts)
+    .where(inArray(storefrontProducts.id, wanted));
+  const live = new Set(existing.map((r) => r.id));
+  const rows = wanted
+    .filter((id) => live.has(id))
+    .map((addonProductId, sortOrder) => ({ productId, addonProductId, sortOrder }));
+  if (rows.length > 0) await tx.insert(storefrontProductAddons).values(rows);
+}
 
 /**
  * One piece per Groom Edit slot: whoever held the chosen number moves to
@@ -315,6 +347,8 @@ export async function createProduct(
         })
         .returning();
 
+      await saveAddons(tx, row.id, parsed.addonIds);
+
       if (parsed.images.length > 0) {
         await tx.insert(storefrontProductImages).values(
           parsed.images.map((img, i) => ({
@@ -390,6 +424,8 @@ export async function updateProduct(
           updatedAt: new Date(),
         })
         .where(eq(storefrontProducts.id, id));
+
+      await saveAddons(tx, id, parsed.addonIds);
 
       await tx
         .delete(storefrontProductImages)

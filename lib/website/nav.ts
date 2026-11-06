@@ -1,4 +1,9 @@
-import { SHOP_CATEGORIES } from "./categories";
+import {
+  ACCESSORIES_HREF,
+  ACCESSORY_CATEGORIES,
+  CLOTHING_CATEGORIES,
+  SARBALA_CATEGORY,
+} from "./categories";
 
 export type NavColumn = { heading: string; links: { label: string; href: string }[] };
 export type NavEntry = { label: string; href: string; columns: NavColumn[] | null };
@@ -12,6 +17,14 @@ export type NavEntry = { label: string; href: string; columns: NavColumn[] | nul
  * at all from /shop/[category], /product/[slug], /search, or /wishlist.
  * The leading slash routes to the homepage first, then scrolls.
  */
+const ACCESSORIES_COLUMN: NavColumn = {
+  heading: "Accessories",
+  links: [
+    { label: "All Accessories", href: ACCESSORIES_HREF },
+    ...ACCESSORY_CATEGORIES.map((c) => ({ label: c.label, href: `/shop/${c.slug}` })),
+  ],
+};
+
 export const PRIMARY_NAV: NavEntry[] = [
   {
     label: "Shop",
@@ -26,12 +39,19 @@ export const PRIMARY_NAV: NavEntry[] = [
       },
       {
         heading: "Clothing",
-        links: SHOP_CATEGORIES.map((c) => ({
+        links: [...CLOTHING_CATEGORIES, SARBALA_CATEGORY].map((c) => ({
           label: c.label,
           href: `/shop/${c.slug}`,
         })),
       },
+      ACCESSORIES_COLUMN,
     ],
+  },
+  { label: SARBALA_CATEGORY.label, href: `/shop/${SARBALA_CATEGORY.slug}`, columns: null },
+  {
+    label: "Accessories",
+    href: ACCESSORIES_HREF,
+    columns: [ACCESSORIES_COLUMN],
   },
   {
     label: "Collections",

@@ -184,10 +184,10 @@ export function productJsonLd(product: Product) {
 /* ------------------------------------------------------------------ */
 
 export function itemListJsonLd(
-  category: ShopCategorySlug,
+  category: ShopCategorySlug | "accessories",
   products: Product[],
 ) {
-  const label = shopCategoryLabel(category);
+  const label = category === "accessories" ? "Accessories" : shopCategoryLabel(category);
   return {
     "@context": "https://schema.org",
     "@type": "ItemList",

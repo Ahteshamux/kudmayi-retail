@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useWishlist } from "./WishlistContext";
-import { SHOP_CATEGORIES } from "@/lib/website/categories";
+import {
+  ACCESSORIES_HREF,
+  ACCESSORY_CATEGORIES,
+  CLOTHING_CATEGORIES,
+  SARBALA_CATEGORY,
+} from "@/lib/website/categories";
 import { SECONDARY_MOBILE_LINKS } from "@/lib/website/nav";
 import { whatsAppLink } from "@/lib/website/whatsapp";
 import { useFocusTrap } from "./useFocusTrap";
@@ -89,7 +94,7 @@ export function MobileNav() {
             <nav aria-label="Shop by category" className="mt-8">
               <p className="u-caps text-brass-deep">Shop</p>
               <ul className="mt-3">
-                {SHOP_CATEGORIES.map((category) => (
+                {[...CLOTHING_CATEGORIES, SARBALA_CATEGORY].map((category) => (
                   <li key={category.slug}>
                     <Link
                       href={`/shop/${category.slug}`}
@@ -100,6 +105,28 @@ export function MobileNav() {
                     </Link>
                   </li>
                 ))}
+                <li className="border-line border-b pb-3">
+                  <Link
+                    href={ACCESSORIES_HREF}
+                    onClick={close}
+                    className="font-display hover:text-brass-deep block pt-4 pb-2 text-2xl transition-colors"
+                  >
+                    Accessories
+                  </Link>
+                  <ul>
+                    {ACCESSORY_CATEGORIES.map((category) => (
+                      <li key={category.slug}>
+                        <Link
+                          href={`/shop/${category.slug}`}
+                          onClick={close}
+                          className="text-muted hover:text-brass-deep block py-2.5 pl-4 transition-colors"
+                        >
+                          {category.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
               </ul>
             </nav>
 

@@ -3,7 +3,12 @@ import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { ProductCard } from "@/components/ProductCard";
 import { SectionLabel } from "@/components/SectionLabel";
-import { categoryLabel, isCategorySlug } from "@/lib/categories";
+import {
+  ACCESSORY_SLUGS,
+  RETAIL_ACCESSORIES_HREF,
+  categoryLabel,
+  isCategorySlug,
+} from "@/lib/categories";
 import { createClient } from "@/lib/supabase/server";
 import type { Product } from "@/lib/types";
 
@@ -30,10 +35,10 @@ export default async function CategoryPage({
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-10 sm:px-8 sm:py-14">
         <Link
-          href="/admin/catalog"
+          href={ACCESSORY_SLUGS.includes(slug) ? RETAIL_ACCESSORIES_HREF : "/admin/catalog"}
           className="u-caps text-muted hover:text-brass-deep mb-8 inline-block transition-colors"
         >
-          &larr; All collections
+          &larr; {ACCESSORY_SLUGS.includes(slug) ? "Accessories" : "All collections"}
         </Link>
 
         <div className="mb-10 flex flex-wrap items-end justify-between gap-5">

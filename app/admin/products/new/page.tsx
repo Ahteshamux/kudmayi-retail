@@ -1,3 +1,4 @@
+import { loadAddonOptions } from "@/lib/website/addon-options";
 import { loadGroomEditSlots } from "@/lib/website/groom-edit-slots";
 import { eq, ilike } from "drizzle-orm";
 import Link from "next/link";
@@ -113,6 +114,7 @@ export default async function NewProductPage({
           prefill={prefill ?? undefined}
           retailProductId={prefill ? (retailId ?? undefined) : undefined}
           groomEditSlots={await loadGroomEditSlots()}
+          addonOptions={await loadAddonOptions()}
           defaultCategory={defaultCategory}
           submitLabel="Save product"
           cancelHref="/admin/products"

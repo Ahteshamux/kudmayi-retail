@@ -5,7 +5,11 @@ import { Breadcrumb } from "@/components/website/Breadcrumb";
 import { ProductActions } from "@/components/website/ProductActions";
 import { ProductGallery } from "@/components/website/ProductGallery";
 import { ShareButton } from "@/components/website/ShareButton";
-import { shopCategoryLabel } from "@/lib/website/categories";
+import {
+  ACCESSORIES_HREF,
+  isAccessoryCategory,
+  shopCategoryLabel,
+} from "@/lib/website/categories";
 import {
   CATEGORY_CRAFT_STORY,
   productStoryParagraph,
@@ -18,7 +22,7 @@ import {
   productJsonLd,
   breadcrumbJsonLd,
 } from "@/lib/website/json-ld";
-import { getProductBySlug, listAllProducts } from "@/lib/website/products";
+import { getProductAddons, getProductBySlug, listAllProducts } from "@/lib/website/products";
 import { whatsAppLink } from "@/lib/website/whatsapp";
 
 export async function generateStaticParams() {
@@ -75,11 +79,13 @@ export default async function ProductPage({
   if (!product) notFound();
 
   const categoryLabel = shopCategoryLabel(product.category);
-  const sizes = product.sizes.length > 0 ? product.sizes : sizesForCategory();
+  const sizes = product.sizes.length > 0 ? product.sizes : sizesForCategory(product.category);
+  const isAccessory = isAccessoryCategory(product.category);
 
   const breadcrumbItems = [
     { name: "Home", url: SITE_URL },
     { name: "Shop", url: `${SITE_URL}/shop/${product.category}` },
+    ...(isAccessory ? [{ name: "Accessories", url: `${SITE_URL}${ACCESSORIES_HREF}` }] : []),
     { name: categoryLabel, url: `${SITE_URL}/shop/${product.category}` },
     { name: product.name },
   ];
@@ -106,6 +112,7 @@ export default async function ProductPage({
         items={[
           { label: "Home", href: "/" },
           { label: "Shop" },
+          ...(isAccessory ? [{ label: "Accessories", href: ACCESSORIES_HREF }] : []),
           { label: categoryLabel, href: `/shop/${product.category}` },
           { label: product.name },
         ]}
@@ -113,7 +120,7 @@ export default async function ProductPage({
 
       <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-16">
         <ProductGallery
-          images={[product.image, product.hoverImage]}
+          images={product.gallery?.length ? product.gallery : [product.image, product.hoverImage]}
           productName={product.name}
         />
 
@@ -174,15 +181,16 @@ export default async function ProductPage({
             </span>
           </div>
 
-          <ProductActions product={product} sizes={sizes} />
+          <ProductActions product={product} sizes={sizes} addons={await getProductAddons(product.slug)} />
 
           <div className="mt-10">
             <AccordionItem title="Product Details">
               <ul className="space-y-1.5">
                 <li>Category: {categoryLabel}</li>
                 <li>Colour: {product.colorName}</li>
-                <li>Fit: Tailored</li>
-                <li>Care: Dry clean only</li>
+                {/* Garment-only details; wrong for a shoe or turban. */}
+                {!isAccessory && <li>Fit: Tailored</li>}
+                {!isAccessory && <li>Care: Dry clean only</li>}
                 <li>Handmade — small variations in embroidery and finish are part of the piece, not a flaw.</li>
               </ul>
             </AccordionItem>
