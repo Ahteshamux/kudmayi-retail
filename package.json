@@ -14,6 +14,7 @@
     "seed-storefront": "tsx scripts/seed-storefront-products.mts"
   },
   "dependencies": {
+    "@next/third-parties": "16.3.8",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.3",
     "drizzle-orm": "^0.45.2",

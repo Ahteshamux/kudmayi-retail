@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GoogleTagManager } from "@next/third-parties/google";
 import { AnnouncementBar } from "@/components/website/AnnouncementBar";
 import { CommerceProviders } from "@/components/website/CommerceProviders";
 import { Footer } from "@/components/website/Footer";
@@ -10,6 +11,7 @@ import {
   organizationJsonLd,
   webSiteJsonLd,
 } from "@/lib/website/json-ld";
+import { GTM_ID } from "@/lib/website/constants";
 
 /*
  * The live site sits behind Hostinger's CDN, which honours s-maxage.
@@ -42,6 +44,7 @@ export default function WebsiteLayout({
 }: LayoutProps<"/">) {
   return (
     <CommerceProviders>
+      <GoogleTagManager gtmId={GTM_ID} />
       <JsonLd data={organizationJsonLd()} />
       <JsonLd data={webSiteJsonLd()} />
 

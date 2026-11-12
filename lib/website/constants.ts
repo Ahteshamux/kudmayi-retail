@@ -69,3 +69,9 @@ export const GROOM_EDIT_LIMIT = 8;
 
 /** Most add-ons one product can offer; more than this overwhelms the page. */
 export const MAX_ADDONS = 6;
+
+/**
+ * Google Tag Manager container. Loaded on the public storefront and /visit
+ * only — never the admin, so staff browsing doesn't count as traffic.
+ */
+export const GTM_ID = "GTM-MZZKH87Z";

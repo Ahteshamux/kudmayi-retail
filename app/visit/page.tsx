@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { GoogleTagManager } from "@next/third-parties/google";
 import {
   GOOGLE_MAPS_URL,
   GOOGLE_REVIEW_URL,
+  GTM_ID,
   INSTAGRAM_HANDLE,
   INSTAGRAM_URL,
   SITE_URL,
@@ -82,6 +84,7 @@ export default function VisitPage() {
 
   return (
     <main className="bg-parchment text-espresso flex min-h-dvh flex-col px-5 pt-[max(2.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+      <GoogleTagManager gtmId={GTM_ID} />
       <div className="mx-auto flex w-full max-w-sm flex-1 flex-col">
         <header className="text-center">
           <p className="font-display text-3xl tracking-[0.3em]">KUDMAYI</p>
