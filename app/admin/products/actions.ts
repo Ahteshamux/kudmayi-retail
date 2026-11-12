@@ -2,7 +2,7 @@
 
 import { requireUser, unauthorizedState } from "@/lib/supabase/require-user";
 
-import { and, eq, inArray, like, ne, or } from "drizzle-orm";
+import { and, eq, inArray, like, max, ne, notInArray, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDb } from "@/lib/db/client";
@@ -40,9 +40,18 @@ type ParsedProduct = {
   tags: string[];
   featured: boolean;
   featuredPosition: number | null;
-  addonIds: string[];
+  /** null when the form had no "Complete the look" picker — leave as is. */
+  addonIds: string[] | null;
+  /** null when the form had no "Goes with" picker — leave as is. */
+  pairedWithIds: string[] | null;
   images: ImageInput[];
 };
+
+const UUID_RE = /^[0-9a-f-]{36}$/i;
+
+function idList(formData: FormData, name: string): string[] {
+  return [...new Set(formData.getAll(name).map(String).filter((id) => UUID_RE.test(id)))];
+}
 
 function parseImages(raw: FormDataEntryValue | null): ImageInput[] {
   if (typeof raw !== "string") return [];
@@ -117,11 +126,11 @@ function parseForm(formData: FormData): ParsedProduct | string {
   if (!/^#[0-9a-fA-F]{6}$/.test(colorHex))
     return "Colour swatch must be a hex value like #171410.";
   if (images.length === 0) return "Add at least one photo.";
-  const addonIds = formData
-    .getAll("addonIds")
-    .map(String)
-    .filter((id) => /^[0-9a-f-]{36}$/i.test(id));
-  if (addonIds.length > MAX_ADDONS) return `Pick up to ${MAX_ADDONS} add-ons.`;
+  // The add-on cap is checked by the create/update actions — see addonCapError.
+  const addonIds = formData.has("addonsSubmitted") ? idList(formData, "addonIds") : null;
+  const pairedWithIds = formData.has("pairingsSubmitted")
+    ? idList(formData, "pairedWithIds")
+    : null;
 
   return {
     slug,
@@ -140,6 +149,7 @@ function parseForm(formData: FormData): ParsedProduct | string {
     featured,
     featuredPosition,
     addonIds,
+    pairedWithIds,
     images,
   };
 }
@@ -150,6 +160,33 @@ function revalidateFor(category: ShopCategorySlug, slug?: string) {
   revalidatePath("/shop/accessories");
   if (slug) revalidatePath(`/product/${slug}`);
   revalidatePath("/"); // featured products / category tiles can be affected
+}
+
+/**
+ * "Complete the look" allows MAX_ADDONS ticks — but "Goes with" (ticked from
+ * the turban's side) has no cap, so a product may already hold more. Never
+ * block saving such a product as-is; only refuse growing it past the cap.
+ */
+async function addonCapError(
+  db: Db,
+  addonIds: string[] | null,
+  productId?: string,
+): Promise<string | null> {
+  if (addonIds === null || addonIds.length <= MAX_ADDONS) return null;
+  let current = 0;
+  if (productId) {
+    const rows = await db
+      .select({ id: storefrontProductAddons.addonProductId })
+      .from(storefrontProductAddons)
+      .where(eq(storefrontProductAddons.productId, productId));
+    current = rows.length;
+  }
+  return addonIds.length > current ? `Pick up to ${MAX_ADDONS} add-ons.` : null;
+}
+
+/** "Goes with" can touch any number of other product pages — refresh them all. */
+function revalidateAllProductPages() {
+  revalidatePath("/(website)/product/[slug]", "page");
 }
 
 /** Best-effort — a stale file is not worth failing the write over. */
@@ -228,7 +265,8 @@ type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
  * against live rows first, so a piece deleted in another tab is dropped
  * rather than failing the whole save on its foreign key.
  */
-async function saveAddons(tx: Tx, productId: string, addonIds: string[]) {
+async function saveAddons(tx: Tx, productId: string, addonIds: string[] | null) {
+  if (addonIds === null) return;
   await tx.delete(storefrontProductAddons).where(eq(storefrontProductAddons.productId, productId));
   const wanted = addonIds.filter((id) => id !== productId);
   if (wanted.length === 0) return;
@@ -241,6 +279,57 @@ async function saveAddons(tx: Tx, productId: string, addonIds: string[]) {
     .filter((id) => live.has(id))
     .map((addonProductId, sortOrder) => ({ productId, addonProductId, sortOrder }));
   if (rows.length > 0) await tx.insert(storefrontProductAddons).values(rows);
+}
+
+/**
+ * The reverse of saveAddons, for an add-on piece (a turban, say): makes it
+ * appear under "Complete the look" on exactly the ticked products. Links
+ * that stay keep their place in each product's list; new ones go last.
+ */
+async function savePairings(tx: Tx, addonProductId: string, productIds: string[] | null) {
+  if (productIds === null) return;
+  const wanted = productIds.filter((id) => id !== addonProductId);
+
+  await tx
+    .delete(storefrontProductAddons)
+    .where(
+      and(
+        eq(storefrontProductAddons.addonProductId, addonProductId),
+        wanted.length > 0 ? notInArray(storefrontProductAddons.productId, wanted) : undefined,
+      ),
+    );
+  if (wanted.length === 0) return;
+
+  const already = await tx
+    .select({ id: storefrontProductAddons.productId })
+    .from(storefrontProductAddons)
+    .where(eq(storefrontProductAddons.addonProductId, addonProductId));
+  const linked = new Set(already.map((r) => r.id));
+  const fresh = wanted.filter((id) => !linked.has(id));
+  if (fresh.length === 0) return;
+
+  // Checked against live rows, so a piece deleted in another tab is dropped.
+  const live = await tx
+    .select({ id: storefrontProducts.id })
+    .from(storefrontProducts)
+    .where(inArray(storefrontProducts.id, fresh));
+  if (live.length === 0) return;
+  const liveIds = live.map((r) => r.id);
+
+  const lastOrder = await tx
+    .select({ id: storefrontProductAddons.productId, last: max(storefrontProductAddons.sortOrder) })
+    .from(storefrontProductAddons)
+    .where(inArray(storefrontProductAddons.productId, liveIds))
+    .groupBy(storefrontProductAddons.productId);
+  const next = new Map(lastOrder.map((r) => [r.id, (r.last ?? -1) + 1]));
+
+  await tx.insert(storefrontProductAddons).values(
+    liveIds.map((productId) => ({
+      productId,
+      addonProductId,
+      sortOrder: next.get(productId) ?? 0,
+    })),
+  );
 }
 
 /**
@@ -304,6 +393,9 @@ export async function createProduct(
   const parsed = parseForm(formData);
   if (typeof parsed === "string") return { error: parsed };
 
+  const capError = await addonCapError(db, parsed.addonIds);
+  if (capError) return { error: capError };
+
   const retailRaw = String(formData.get("retailProductId") ?? "");
   const retailProductId = /^[0-9a-f-]{36}$/i.test(retailRaw) ? retailRaw : null;
 
@@ -348,6 +440,7 @@ export async function createProduct(
         .returning();
 
       await saveAddons(tx, row.id, parsed.addonIds);
+      await savePairings(tx, row.id, parsed.pairedWithIds);
 
       if (parsed.images.length > 0) {
         await tx.insert(storefrontProductImages).values(
@@ -366,6 +459,7 @@ export async function createProduct(
   }
 
   revalidateFor(parsed.category, parsed.slug);
+  if (parsed.pairedWithIds !== null) revalidateAllProductPages();
   redirect(`/admin/products/${parsed.slug}`);
 }
 
@@ -383,6 +477,9 @@ export async function updateProduct(
 
   const parsed = parseForm(formData);
   if (typeof parsed === "string") return { error: parsed };
+
+  const capError = await addonCapError(db, parsed.addonIds, id);
+  if (capError) return { error: capError };
 
   const removedPaths = parseStringList(formData.get("removedImagePaths"));
 
@@ -426,6 +523,7 @@ export async function updateProduct(
         .where(eq(storefrontProducts.id, id));
 
       await saveAddons(tx, id, parsed.addonIds);
+      await savePairings(tx, id, parsed.pairedWithIds);
 
       await tx
         .delete(storefrontProductImages)
@@ -449,6 +547,7 @@ export async function updateProduct(
   await removeStoredFiles(removedPaths);
 
   revalidateFor(parsed.category, parsed.slug);
+  if (parsed.pairedWithIds !== null) revalidateAllProductPages();
   if (previousCategory && previousCategory !== parsed.category) {
     revalidatePath(`/shop/${previousCategory}`);
   }
